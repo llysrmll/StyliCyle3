@@ -1,9 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "destination": "/HTML/index.html"
     }
-  ],
-  "trailingSlash": true
+  ]
 }
