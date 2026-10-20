@@ -3,6 +3,10 @@
     {
       "source": "/",
       "destination": "/HTML/index.html"
+    },
+    {
+      "source": "/:path*.html",
+      "destination": "/HTML/:path*.html"
     }
   ],
   "trailingSlash": true
