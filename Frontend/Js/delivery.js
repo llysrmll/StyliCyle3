@@ -55,28 +55,29 @@ if (document.getElementById('deliveryForm')) {
     }, 500); 
   }
 
-  async function searchAddress(address) {
-    if (!address.trim()) {
+  async function searchAddress(input) {
+    const address = input.value.trim();
+    if (!address) {
       alert('Please enter an address to search');
       return;
     }
 
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`);
+      if (!response.ok) {
+        throw new Error(`Geocoding request failed (${response.status})`);
+      }
       const data = await response.json();
 
       if (data && data.length > 0) {
         const location = data[0];
         const coords = [parseFloat(location.lat), parseFloat(location.lon)];
 
-        const pickupInput = document.getElementById('pickupAddress');
-        const deliveryInput = document.getElementById('deliveryAddress');
-
-        if (address === pickupInput.value) {
-          pickupInput.value = location.display_name;
+        if (input.id === 'pickupAddress') {
+          input.value = location.display_name;
           pickupCoords = coords;
-        } else if (address === deliveryInput.value) {
-          deliveryInput.value = location.display_name;
+        } else {
+          input.value = location.display_name;
           deliveryCoords = coords;
         }
 
@@ -91,6 +92,13 @@ if (document.getElementById('deliveryForm')) {
       alert('Error searching for address. Please try again.');
     }
   }
+
+  document.getElementById('pickupSearchButton').addEventListener('click', () => {
+    searchAddress(document.getElementById('pickupAddress'));
+  });
+  document.getElementById('deliverySearchButton').addEventListener('click', () => {
+    searchAddress(document.getElementById('deliveryAddress'));
+  });
 
   function updateRoute() {
     if (routingControl) {
