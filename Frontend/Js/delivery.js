@@ -4,7 +4,7 @@
 // 1. SUPABASE INITIALIZATION
 // ==========================================
 const SUPABASE_URL = 'https://kjiyvstudiqlmegyqfpg.supabase.co'; // Replace with your actual URL
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqaXl2c3R1ZGlxbG1lZ3lxZnBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMDE5NTYsImV4cCI6MjEwNzg3Nzk1Nn0.6rizgXfBtyTrRdL7Q0sS4WKcgvmo1OdNom4957hP6Dg'; // Replace with your Publishable Key
+const SUPABASE_ANON_KEY = 'sb_publishable_SVbMwppVGBSAZGanWksG1Q_H2O67fGy'; // Replace with your Publishable Key
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
