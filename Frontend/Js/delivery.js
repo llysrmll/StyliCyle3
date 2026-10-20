@@ -238,8 +238,21 @@ if (document.getElementById('deliveryForm')) {
       loadDeliveries(); 
     } catch (err) {
       console.error('Supabase insert error:', err);
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
-      alert(`Could not save the delivery: ${message}`);
+      const message = err && typeof err === 'object' && 'message' in err
+        ? String(err.message)
+        : err instanceof Error
+          ? err.message
+          : String(err);
+      const code = err && typeof err === 'object' && 'code' in err
+        ? ` (code: ${String(err.code)})`
+        : '';
+      const details = err && typeof err === 'object' && 'details' in err && err.details
+        ? ` ${String(err.details)}`
+        : '';
+      const hint = err && typeof err === 'object' && 'hint' in err && err.hint
+        ? ` ${String(err.hint)}`
+        : '';
+      alert(`Could not save the delivery: ${message}${code}${details}${hint}`);
     } finally {
       submitButton.disabled = false;
     }
