@@ -1,11 +1,13 @@
-// delivery.js - Updated for Supabase matching exact schema
+// delivery.js - Updated with variable fix
 
 // ==========================================
 // 1. SUPABASE INITIALIZATION
 // ==========================================
-const SUPABASE_URL = 'https://kjiyvstudiqlmegyqfpg.supabase.co'; // Replace this!
-const SUPABASE_ANON_KEY = 'sb_publishable_SVbMwppVGBSAZGanWksG1Q_H2O67fGy'; // Replace this!
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = 'https://kjiyvstudiqlmegyqfpg.supabase.co'; // Replace with your actual URL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqaXl2c3R1ZGlxbG1lZ3lxZnBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMDE5NTYsImV4cCI6MjEwNzg3Nzk1Nn0.6rizgXfBtyTrRdL7Q0sS4WKcgvmo1OdNom4957hP6Dg'; // Replace with your Publishable Key
+
+// FIX: Renamed to supabaseClient to avoid collision with the CDN global 'supabase'
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 if (document.getElementById('deliveryForm')) {
   let map;
@@ -132,13 +134,14 @@ if (document.getElementById('deliveryForm')) {
   }
 
   // ==========================================
-  // 3. SUPABASE DATABASE LOGIC (Matches your schema)
+  // 3. SUPABASE DATABASE LOGIC
   // ==========================================
   async function loadDeliveries() {
     const deliveryList = document.getElementById('deliveryList');
     deliveryList.innerHTML = '<p>Loading deliveries...</p>';
 
-    const { data: deliveries, error } = await supabase
+    // FIX: Using supabaseClient here
+    const { data: deliveries, error } = await supabaseClient
       .from('deliveries')
       .select('*')
       .order('created_at', { ascending: false });
@@ -160,7 +163,6 @@ if (document.getElementById('deliveryForm')) {
       item.className = 'delivery-item';
       item.style.cursor = 'pointer';
 
-      // Formatting the pickup_time (since it's a timestamp column)
       let formattedTime = '-';
       if (delivery.pickup_time) {
         formattedTime = new Date(delivery.pickup_time).toLocaleString();
@@ -197,7 +199,6 @@ if (document.getElementById('deliveryForm')) {
       return;
     }
 
-    // Payload mapped EXACTLY to your friend's database columns
     const payload = {
       pickup_address: document.getElementById('pickupAddress').value,
       delivery_address: document.getElementById('deliveryAddress').value,
@@ -208,12 +209,12 @@ if (document.getElementById('deliveryForm')) {
       pickup_lng: pickupCoords[1],
       delivery_lat: deliveryCoords[0],
       delivery_lng: deliveryCoords[1],
-      status: 'Pending' // Required by your NON-NULLABLE constraint
-      // user_id, distance_km, and fee are left out for now as they are nullable
+      status: 'Pending'
     };
 
     try {
-      const { data, error } = await supabase
+      // FIX: Using supabaseClient here
+      const { data, error } = await supabaseClient
         .from('deliveries')
         .insert([payload]);
 
@@ -222,7 +223,7 @@ if (document.getElementById('deliveryForm')) {
       alert('Delivery scheduled successfully!');
       this.reset();
       clearRoute();
-      loadDeliveries(); // Refresh the list
+      loadDeliveries(); 
     } catch (err) {
       console.error('Supabase insert error:', err);
       alert('Could not save the delivery. Check the console (F12) for details.');
