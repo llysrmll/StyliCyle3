@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Profile - StyliCycle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="rental.html">Rentals</a>
+      <a href="delivery.html">Delivery</a>
+      <a href="chatbox.html">Messages</a>
+      <a href="profile.html" class="active">Profile</a>
+    </div>
+    <div class="nav-actions">
+      <div class="nav-chat-input">
+        <input id="navChatInput" type="text" placeholder="Ask chat...">
+        <button type="button" id="navChatButton">➤</button>
+      </div>
+      <button type="button" class="nav-button" id="navNotificationBtn">Notifications</button>
+    </div>
+  </nav>
+
+  <main class="profile-container">
+    <section class="profile-overview" aria-labelledby="vendor-profile-title">
+      <h2 class="profile-card-title" id="vendor-profile-title">Vendor Profile</h2>
+
+      <header class="profile-header">
+        <img src="../Images/baby.jpg" alt="Elise Alata" class="profile-photo">
+        <div class="profile-info">
+          <p class="eyebrow">Verified Vendor</p>
+          <h1>Elise Alata</h1>
+          <p class="business-name">Event Couture</p>
+          <p class="contact-line">+63 123 39893</p>
+          <p class="contact-line">hello@eventcouture.ph</p>
+
+          <div class="profile-actions">
+            <button type="button" class="btn btn-primary" id="profileAdminChatBtn">Message Admin</button>
+            <a class="btn btn-outline" href="rental.html">Manage Rentals</a>
+          </div>
+        </div>
+      </header>
+
+      <section class="about-section" aria-labelledby="vendor-about-title">
+        <div class="section-heading">
+          <h2 id="vendor-about-title">About</h2>
+        </div>
+        <p class="about-text">Trusted partner for bridal, formalwear, and event rentals with years of experience.</p>
+
+        <dl class="detail-list">
+          <div class="detail-row">
+            <dt>Location</dt>
+            <dd>Manila, PH</dd>
+          </div>
+          <div class="detail-row">
+            <dt>Specialty</dt>
+            <dd>Gowns &amp; Suits</dd>
+          </div>
+          <div class="detail-row">
+            <dt>Verified</dt>
+            <dd>Yes</dd>
+          </div>
+          <div class="detail-row">
+            <dt>Member since</dt>
+            <dd>Jan 2024</dd>
+          </div>
+        </dl>
+      </section>
+    </section>
+
+    <section class="portfolio profile-portfolio" aria-labelledby="vendor-portfolio-title">
+      <div class="section-heading">
+        <h2 id="vendor-portfolio-title">Portfolio</h2>
+      </div>
+
+      <ul class="portfolio-list">
+        <li class="portfolio-item">
+          <span class="item-name">Silver Sequin Gown</span>
+          <span class="item-desc">Perfect for parties and evening events.</span>
+        </li>
+        <li class="portfolio-item">
+          <span class="item-name">Black Tuxedo Suit</span>
+          <span class="item-desc">Sharp wedding and formal event attire.</span>
+        </li>
+        <li class="portfolio-item">
+          <span class="item-name">Ivory Bridal Gown</span>
+          <span class="item-desc">Elegant and timeless bridal choice.</span>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="../Javascript/common.js"></script>
+  <script src="../Javascript/profile.js"></script>
+</body>
+</html>

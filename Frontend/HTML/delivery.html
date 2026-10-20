@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StyliCycle - Clothing Delivery</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <style>
+    #map {
+      position: relative;
+      height: 100%;
+      min-height: 520px;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .delivery-form {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
+      margin-bottom: 0;
+    }
+    .delivery-form h3 {
+      margin-top: 0;
+    }
+    .delivery-form input, .delivery-form select, .delivery-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .delivery-form button {
+      background: #5d204c;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delivery-form button:hover {
+      background: #432b38;
+    }
+    .delivery-list {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
+    }
+    .delivery-item {
+      border: 1px solid rgba(95, 36, 73, 0.1);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 12px 0;
+      transition: background-color 0.3s ease;
+    }
+    .delivery-item:hover {
+      background-color: #faf6f0;
+    }
+    .delivery-item:last-child {
+      border-bottom: 1px solid rgba(95, 36, 73, 0.1);
+    }
+    .search-btn {
+      background: #5d204c;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .search-btn:hover {
+      background: #432b38;
+    }
+    .delivery-layout {
+      grid-template-columns: minmax(260px, 0.75fr) minmax(360px, 1fr) minmax(260px, 0.75fr);
+      align-items: stretch;
+      margin: 20px 32px 48px;
+    }
+    .delivery-layout > section {
+      min-width: 0;
+      height: 100%;
+    }
+    .delivery-map-panel {
+      min-width: 0;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
+    }
+    .delivery-panel-heading {
+      margin-bottom: 16px;
+    }
+    .delivery-panel-heading h3 {
+      margin: 0 0 4px;
+    }
+    .delivery-panel-heading span {
+      color: #6b5c64;
+      font-size: 0.88rem;
+    }
+    .delivery-item p {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 8px;
+      margin: 6px 0;
+      color: #6b5c64;
+      line-height: 1.45;
+    }
+    .delivery-item strong {
+      color: #432b38;
+    }
+    .map-fallback {
+      position: absolute;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 24px;
+      text-align: center;
+      color: #432b38;
+      background: linear-gradient(135deg, #f3e8df, #e4cfa0);
+    }
+    .map-fallback[hidden] {
+      display: none;
+    }
+    .map-fallback span {
+      max-width: 260px;
+      color: #6b5c64;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 1100px) {
+      .delivery-layout {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .delivery-map-panel {
+        grid-column: 1 / -1;
+        grid-row: 1;
+      }
+      .delivery-form {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      .delivery-list {
+        grid-column: 2;
+        grid-row: 2;
+      }
+    }
+    @media (max-width: 700px) {
+      .delivery-layout {
+        grid-template-columns: 1fr;
+        margin: 16px;
+      }
+      .delivery-map-panel,
+      .delivery-form,
+      .delivery-list {
+        grid-column: 1;
+        grid-row: auto;
+      }
+      #map {
+        min-height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="rental.html">Rentals</a>
+      <a href="delivery.html">Delivery</a>
+      <a href="chatbox.html">Messages</a>
+      <a href="profile.html">Profile</a>
+    </div>
+    <div class="nav-actions">
+      <div class="nav-chat-input">
+        <input id="navChatInput" type="text" placeholder="Ask chat...">
+        <button type="button" id="navChatButton">➤</button>
+      </div>
+      <button type="button" class="nav-button" id="navNotificationBtn">Notifications</button>
+    </div>
+  </nav>
+  <section class="home-search">
+    <input id="homeSearchInput" type="text" placeholder="Search clothing deliveries or locations">
+    <button type="button" id="homeSearchBtn">Search</button>
+    <button type="button" class="home-search-chat" onclick="location.href='chatbox.html'">Messages</button>
+  </section>
+  <main class="dashboard delivery-layout">
+    <section class="delivery-form">
+      <h3>Schedule Clothing Delivery</h3>
+      <form id="deliveryForm">
+        <div style="display: flex; align-items: center;">
+          <input type="text" id="pickupAddress" placeholder="Pickup Address (Tailor/Store)" required style="flex: 1;">
+          <button type="button" class="search-btn" onclick="searchAddress(document.getElementById('pickupAddress').value)">Search</button>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <input type="text" id="deliveryAddress" placeholder="Delivery Address (Event Venue/Customer)" required style="flex: 1;">
+          <button type="button" class="search-btn" onclick="searchAddress(document.getElementById('deliveryAddress').value)">Search</button>
+        </div>
+        <input type="datetime-local" id="pickupTime" required>
+        <select id="itemType">
+          <option value="">Select Clothing Type</option>
+          <option value="tuxedo">Tuxedo</option>
+          <option value="gown">Gown for Event</option>
+          <option value="suit">Formal Suit</option>
+          <option value="dress">Evening Dress</option>
+          <option value="costume">Costume</option>
+          <option value="other">Other</option>
+        </select>
+        <textarea id="notes" placeholder="Additional notes"></textarea>
+        <button type="submit">Schedule Delivery</button>
+      </form>
+    </section>
+    <section class="delivery-map-panel">
+      <div class="delivery-panel-heading">
+        <h3>Delivery Route</h3>
+        <span>Search both addresses to view the route.</span>
+      </div>
+      <div id="map">
+        <div id="mapFallback" class="map-fallback" hidden>
+          <strong>Map preview unavailable</strong>
+          <span>Open this page through a local server to load live map tiles.</span>
+        </div>
+      </div>
+    </section>
+    <section class="delivery-list">
+      <h3>Your Clothing Deliveries</h3>
+      <div id="deliveryList">
+        <!-- Clothing deliveries will be listed here -->
+      </div>
+    </section>
+  </main>
+  <script src="../JS/common.js"></script>
+  <script src="../JS/delivery.js"></script>
+</body>
+</html>

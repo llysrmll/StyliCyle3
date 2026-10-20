@@ -1,0 +1,3 @@
+Backend/config.php
+Backend/uploads/*
+!Backend/uploads/.htaccess

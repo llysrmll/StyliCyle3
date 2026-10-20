@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages - StyliCycle</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="rental.html">Rentals</a>
+      <a href="delivery.html">Delivery</a>
+      <a href="chatbox.html" class="active">Messages</a>
+      <a href="profile.html">Profile</a>
+    </div>
+    <div class="nav-actions">
+      <div class="nav-chat-input">
+        <input id="navChatInput" type="text" placeholder="Ask chat...">
+        <button type="button" id="navChatButton">➤</button>
+      </div>
+      <button type="button" class="nav-button" id="navNotificationBtn">Notifications</button>
+    </div>
+  </nav>
+  <main class="container chat-layout">
+    <aside class="side-panel">
+      <h3>Messages</h3>
+      <button type="button" class="active">Event Couture</button>
+      <button type="button" onclick="location.href='message.html'">Admin Support</button>
+      <div class="notification-list">
+        <h4>Recent updates</h4>
+        <ul id="chatNotifications"></ul>
+      </div>
+    </aside>
+    <section class="chatbox">
+      <div class="chat-header">
+        <div class="chat-avatar">EC</div>
+        <div class="chat-info">
+          <h2>Event Couture</h2>
+          <span>Rental partner</span>
+        </div>
+        <div class="chat-user-actions">
+          <button type="button" class="chat-action-button" onclick="location.href='profile.html'">View Profile</button>
+        </div>
+      </div>
+      <div class="chat-window">
+        <div class="message bot">
+          <div class="message-text">Hello! Thanks for contacting Event Couture. How can we help with your rental?</div>
+        </div>
+        <div class="message user">
+          <div class="message-text">Hi, I have a question about availability for an upcoming event.</div>
+        </div>
+      </div>
+      <form id="chatForm" class="chat-form">
+        <input type="text" placeholder="Type a message..." aria-label="Message" required>
+        <button type="submit" aria-label="Send message">➤</button>
+      </form>
+    </section>
+  </main>
+  <script src="../JS/common.js"></script>
+  <script src="../JS/chat.js"></script>
+</body>
+</html>

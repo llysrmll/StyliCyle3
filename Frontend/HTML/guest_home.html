@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StyliCycle - Home</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="rental.html">Rentals</a>
+      <a href="delivery.html">Delivery</a>
+    </div>
+    <div class="nav-actions" style="display: flex; gap: 10px; align-items: center;">
+      <!-- Guest Actions: Login & Signup -->
+      <a href="index.html" class="nav-button" style="text-decoration: none; text-align: center;">Log In</a>
+      <a href="signup.html" class="nav-button" style="text-decoration: none; text-align: center; background-color: #007bff; color: white;">Sign Up</a>
+    </div>
+  </nav>
+
+  <!-- Search Section -->
+  <section class="home-search">
+    <input id="homeSearchInput" type="text" placeholder="Search rentals, partners, or updates">
+    <!-- Redirect to login on search -->
+    <button type="button" id="homeSearchBtn" onclick="location.href='index.html'">Search</button>
+    <!-- Redirect to login for messages -->
+    <button type="button" class="home-search-chat" onclick="location.href='index.html'">Messages</button>
+  </section>
+
+  <!-- Main Dashboard -->
+  <main class="dashboard home-grid">
+    <!-- Side Panel (Quick Actions) -->
+    <aside class="side-panel">
+      <h3>Quick Actions</h3>
+      <!-- All quick actions redirect to login -->
+      <button type="button" onclick="location.href='index.html'">Post Rental</button>
+      <button type="button" onclick="location.href='index.html'">User Messages</button>
+      <button type="button" onclick="location.href='index.html'">Admin Support</button>
+      <button type="button" onclick="location.href='index.html'">View Notifications</button>
+      
+      <!-- Replaced Create Post area with a login prompt -->
+      <div class="create-post" style="text-align: center; padding: 20px 0;">
+        <h4>Create a Post</h4>
+        <p style="margin-bottom: 15px; font-size: 14px; color: #666;">You need to be logged in to share your thoughts or updates.</p>
+        <button type="button" onclick="location.href='index.html'" style="width: 100%;">Log In to Post</button>
+      </div>
+
+      <!-- Replaced notification list with a prompt -->
+      <div class="notification-list">
+        <h4>Recent Alerts</h4>
+        <p style="font-size: 14px; color: #666;">Log in to view your notifications.</p>
+      </div>
+    </aside>
+
+    <!-- Main Content (Suggested Rentals) -->
+    <section class="card store-suggestion-card">
+      <div class="store-suggestion-content">
+        <h3>Suggested Rental Idea</h3>
+        <p>Discover event-ready suits and gowns for weddings, parties, and formal occasions. Browse our most popular rental looks for your next celebration.</p>
+        <!-- Redirect to login when trying to browse/rent -->
+        <button type="button" onclick="location.href='index.html'">Browse Rentals</button>
+      </div>
+      <div class="suggestion-images" aria-label="Featured rental clothing">
+        <article class="suggestion-card">
+          <img src="../Images/gold.jpg" alt="Tan suit rental">
+          <h4>Tan Suit</h4>
+        </article>
+        <article class="suggestion-card">
+          <img src="../Images/tuxedo.jpg" alt="Black tuxedo rental">
+          <h4>Tuxedo</h4>
+        </article>
+        <article class="suggestion-card">
+          <img src="../Images/evening.jpg" alt="Red gown rental">
+          <h4>Red Gown</h4>
+        </article>
+        <article class="suggestion-card">
+          <img src="../Images/bridal.jpg" alt="Bridal gown rental">
+          <h4>Bridal Gown</h4>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script src="../JS/common.js"></script>
+  <!-- Removed home.js since a guest shouldn't be running authenticated scripts -->
+</body>
+</html>

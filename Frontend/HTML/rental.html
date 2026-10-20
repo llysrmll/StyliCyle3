@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rentals - StyliCycle</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body class="rental-page">
+  <nav class="top-nav">
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="rental.html" class="active">Rentals</a>
+      <a href="delivery.html">Delivery</a>
+      <a href="chatbox.html">Messages</a>
+      <a href="profile.html">Profile</a>
+    </div>
+    <div class="nav-actions">
+      <div class="nav-chat-input">
+        <input id="navChatInput" type="text" placeholder="Ask chat...">
+        <button type="button" id="navChatButton">➤</button>
+      </div>
+      <button type="button" class="nav-button" id="navNotificationBtn">Notifications</button>
+    </div>
+  </nav>
+
+  <main class="rental-page-content">
+    <div class="rental-card">
+      <div class="page-actions">
+        <button type="button" id="rentalMyListingsBtn">My Listings</button>
+        <button type="button" id="rentalViewMessagesBtn">View Messages</button>
+        <button type="button" id="rentalNotificationsBtn">Notifications</button>
+      </div>
+
+      <div class="rental-layout">
+        <section class="listings-panel">
+          <h3>Saved Listings</h3>
+          <ul id="rentalListings"></ul>
+        </section>
+
+        <section class="rental-form-section">
+          <h1>List your item for rent</h1>
+          <p class="subtitle">Share your dress, suit, or accessory with trusted event renters.</p>
+
+          <!-- CHANGED: every field now has a name="" so PHP can read it -->
+          <form id="rentalForm" class="rental-form">
+            <label class="field-group">
+              <span>Item Name</span>
+              <input type="text" name="title" placeholder="Wedding gown, tuxedo, accent piece" required>
+            </label>
+
+            <label class="field-group">
+              <span>Category</span>
+              <input type="text" name="category" placeholder="Bridal, formalwear, accessory" required>
+            </label>
+
+            <label class="field-group">
+              <span>Price per day (₱)</span>
+              <input type="number" name="price_per_day" min="1" step="0.01" placeholder="e.g. 650" required>
+            </label>
+
+            <div class="size-fields">
+              <label class="field-group">
+                <span>Clothing Size</span>
+                <select name="size" required>
+                  <option value="">Select size</option>
+                  <option>XS</option>
+                  <option>S</option>
+                  <option>M</option>
+                  <option>L</option>
+                  <option>XL</option>
+                  <option>XXL</option>
+                  <option>Custom</option>
+                </select>
+              </label>
+              <label class="field-group">
+                <span>Chest / Bust (cm)</span>
+                <input type="number" name="chest_cm" min="0" step="0.5" placeholder="e.g. 92">
+              </label>
+              <label class="field-group">
+                <span>Waist (cm)</span>
+                <input type="number" name="waist_cm" min="0" step="0.5" placeholder="e.g. 74">
+              </label>
+              <label class="field-group">
+                <span>Length (cm)</span>
+                <input type="number" name="length_cm" min="0" step="0.5" placeholder="e.g. 150">
+              </label>
+            </div>
+
+            <label class="field-group">
+              <span>Description</span>
+              <textarea name="description" placeholder="Describe the fit, condition, colors, and rental details" required></textarea>
+            </label>
+
+            <label class="field-group file-field">
+              <span>Upload Photo</span>
+              <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
+            </label>
+
+            <label class="check-row"><input type="checkbox" name="agree_terms" value="1" required> Agree to Rental Terms</label>
+            <label class="check-row"><input type="checkbox" name="verify_condition" value="1" required> Verify Item Condition</label>
+
+            <button type="submit" class="primary-button">Submit for Review</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="../JS/common.js"></script>
+  <script src="../JS/rental.js"></script>
+</body>
+</html>

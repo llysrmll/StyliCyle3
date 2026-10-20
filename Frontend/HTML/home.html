@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StyliCycle - Home</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="rental.html">Rentals</a>
+      <a href="delivery.html">Delivery</a>
+      <a href="chatbox.html">Messages</a>
+      <a href="profile.html">Profile</a>
+    </div>
+    <div class="nav-actions">
+      <div class="nav-chat-input">
+        <input id="navChatInput" type="text" placeholder="Ask chat...">
+        <button type="button" id="navChatButton">➤</button>
+      </div>
+      <button type="button" class="nav-button" id="navNotificationBtn">Notifications</button>
+    </div>
+  </nav>
+  <section class="home-search">
+    <input id="homeSearchInput" type="text" placeholder="Search rentals, partners, or updates">
+    <button type="button" id="homeSearchBtn">Search</button>
+    <button type="button" class="home-search-chat" onclick="location.href='chatbox.html'">Messages</button>
+  </section>
+  <main class="dashboard home-grid">
+    <aside class="side-panel">
+      <h3>Quick Actions</h3>
+      <button type="button" id="homePostRentalBtn">Post Rental</button>
+      <button type="button" id="homeOpenMessagesBtn">User Messages</button>
+      <button type="button" id="homeOpenAdminChatBtn">Admin Support</button>
+      <button type="button" id="homeViewNotificationsBtn">View Notifications</button>
+      <div id="homeNotificationInfo" class="notification-info hidden"></div>
+      <div class="create-post">
+        <h4>Create a Post</h4>
+        <textarea id="postContent" placeholder="Share your thoughts or updates..."></textarea>
+        <input type="file" id="postImage" accept="image/*" style="display: none;">
+        <button type="button" id="imageUploadBtn" class="image-upload-btn">📷 Upload Image</button>
+        <button type="button" id="submitPostBtn">Post</button>
+      </div>
+      <div class="notification-list">
+        <h4>Recent Alerts</h4>
+        <ul id="homeNotifications"></ul>
+      </div>
+    </aside>
+    <section class="card store-suggestion-card">
+      <div class="store-suggestion-content">
+        <h3>Suggested Rental Idea</h3>
+        <p>Discover event-ready suits and gowns for weddings, parties, and formal occasions. Browse our most popular rental looks for your next celebration.</p>
+        <button type="button" onclick="location.href='rental.html'">Browse Rentals</button>
+      </div>
+      <div class="suggestion-images" aria-label="Featured rental clothing">
+        <article class="suggestion-card">
+          <img src="../Images/gold.jpg" alt="Tan suit rental">
+          <h4>Tan Suit</h4>
+        </article>
+        <article class="suggestion-card">
+          <img src="../Images/tuxedo.jpg" alt="Black tuxedo rental">
+          <h4>Tuxedo</h4>
+        </article>
+        <article class="suggestion-card">
+          <img src="../Images/evening.jpg" alt="Red gown rental">
+          <h4>Red Gown</h4>
+        </article>
+        <article class="suggestion-card">
+          <img src="../Images/bridal.jpg" alt="Bridal gown rental">
+          <h4>Bridal Gown</h4>
+        </article>
+      </div>
+    </section>
+  </main>
+  <script src="../JS/common.js"></script>
+  <script src="../JS/home.js"></script>
+</body>
+</html>

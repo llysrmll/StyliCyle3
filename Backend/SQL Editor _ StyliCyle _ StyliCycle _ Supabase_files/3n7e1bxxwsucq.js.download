@@ -1,0 +1,537 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="5edf018e-dfcd-5ad6-1ecf-da199641d5b2")}catch(e){}}();
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,961753,819591,193835,e=>{"use strict";e.i(427138);var t,s=e.i(812532),a=((t={}).GP3="gp3",t.IO2="io2",t);let r={gp3:{storage:.125,iops:.024,throughput:.095},io2:{storage:.195,iops:.119}},i={gp3:{minStorage:1,maxStorage:65536,minIops:3e3,maxIops:8e4,minThroughput:125,maxThroughput:2e3,includedIops:3e3,includedThroughput:125},io2:{minStorage:4,maxStorage:61440,minIops:1500,maxIops:256e3,includedIops:0,includedThroughput:0}},o={free:{includedDiskGB:{gp3:1,io2:0}},pro:{includedDiskGB:{gp3:8,io2:0}},team:{includedDiskGB:{gp3:8,io2:0}},enterprise:{includedDiskGB:{gp3:8,io2:0}},platform:{includedDiskGB:{gp3:8,io2:0}}};e.s(["AUTOSCALING_THRESHOLD",0,.9,"DISK_AUTOSCALE_CONFIG_DEFAULTS",0,{growthPercent:50,minIncrementSize:4,maxSizeGb:6e4},"DISK_LIMITS",0,i,"DISK_PRICING",0,r,"DISK_TYPE_OPTIONS",0,[{type:"gp3",name:"General Purpose SSD",description:"Balance between price and performance"},{type:"io2",name:"High Performance SSD",description:"High performance for mission critical applications"}],"DiskType",()=>a,"PLAN_DETAILS",0,o,"RESTRICTED_COMPUTE_FOR_IOPS_ON_GP3",0,["ci_nano","ci_micro","ci_small","ci_medium"],"RESTRICTED_COMPUTE_FOR_THROUGHPUT_ON_GP3",0,["ci_nano","ci_micro","ci_small","ci_medium"]],819591),e.i(10429);var n=e.i(837508);let l=e=>"object"==typeof e&&null!==e&&(!("supported_cloud_providers"in e)||!!Array.isArray(e.supported_cloud_providers))&&("cpu_cores"in e||"memory_gb"in e||"cpu_dedicated"in e||"baseline_disk_io_mbs"in e||"max_disk_io_mbs"in e||"connections_direct"in e||"connections_pooler"in e||"backup_duration_days"in e||"supported_cloud_providers"in e),c=i[a.GP3].maxIops,u=i[a.GP3].maxThroughput,m={pico:"ci_nano",nano:"ci_nano",micro:"ci_micro",small:"ci_small",medium:"ci_medium",large:"ci_large",xlarge:"ci_xlarge","2xlarge":"ci_2xlarge","4xlarge":"ci_4xlarge","8xlarge":"ci_8xlarge","12xlarge":"ci_12xlarge","16xlarge":"ci_16xlarge","24xlarge":"ci_24xlarge","24xlarge_optimized_memory":"ci_24xlarge_optimized_memory","24xlarge_optimized_cpu":"ci_24xlarge_optimized_cpu","24xlarge_high_memory":"ci_24xlarge_high_memory","48xlarge":"ci_48xlarge","48xlarge_optimized_memory":"ci_48xlarge_optimized_memory","48xlarge_optimized_cpu":"ci_48xlarge_optimized_cpu","48xlarge_high_memory":"ci_48xlarge_high_memory"},d=e=>Object.prototype.hasOwnProperty.call(m,e),_=new Set(["ci_nano","ci_micro","ci_small","ci_medium","ci_large","ci_xlarge","ci_2xlarge"]),p={ci_nano:"Nano",ci_micro:"Micro",ci_small:"Small",ci_medium:"Medium",ci_large:"Large",ci_xlarge:"XL",ci_2xlarge:"2XL",ci_4xlarge:"4XL",ci_8xlarge:"8XL",ci_12xlarge:"12XL",ci_16xlarge:"16XL",ci_24xlarge:"24XL",ci_24xlarge_optimized_memory:"24XL - Optimized Memory",ci_24xlarge_optimized_cpu:"24XL - Optimized CPU",ci_24xlarge_high_memory:"24XL - High Memory",ci_48xlarge:"48XL",ci_48xlarge_optimized_memory:"48XL - Optimized Memory",ci_48xlarge_optimized_cpu:"48XL - Optimized CPU",ci_48xlarge_high_memory:"48XL - High Memory"};e.s(["calculateComputeSizePrice",0,({availableOptions:e,oldComputeSize:t,newComputeSize:s,plan:a})=>{let r=t;"free"!==a&&"ci_nano"===t&&(r="ci_micro");let i=e?.find(e=>e.identifier===r)?.price??0,o=e?.find(e=>e.identifier===s)?.price??0;return{oldPrice:(720*i).toFixed(2),newPrice:(720*o).toFixed(2)}},"calculateComputeSizeRequiredForIops",0,e=>{let t=Object.entries(s.COMPUTE_MAX_IOPS).map(e=>{let[t,a]=e,r=s.computeInstanceAddonVariantIdSchema.safeParse(t);if(r.success)return{size:r.data,maxIops:Number(a)}}).filter(e=>void 0!==e).sort((e,t)=>e.maxIops-t.maxIops);for(let{size:s,maxIops:a}of t)if(e<=a)return s;let a=t[t.length-1]?.size;if(a)return a},"calculateDiskSizePrice",0,({planId:e,oldSize:t,oldStorageType:s,newSize:a,newStorageType:i,numReplicas:n=0})=>{let l=r[s]?.storage??0,c=r[i]?.storage??0,{includedDiskGB:u}=o?.[e],m=Math.max(t-u[s],0)*l,d=Math.max(a-u[i],0)*c;return{oldPrice:(m+1.25*t*l*n).toFixed(2),newPrice:(d+1.25*a*c*n).toFixed(2)}},"calculateDiskSizeRequiredForIopsWithGp3",0,e=>Math.max(1,Math.ceil(e/500)),"calculateDiskSizeRequiredForIopsWithIo2",0,e=>Math.max(4,Math.ceil(e/1e3)),"calculateIOPSPrice",0,({oldStorageType:e,oldProvisionedIOPS:t,newStorageType:s,newProvisionedIOPS:o,numReplicas:n=0})=>{if(s===a.GP3){let l=Math.max(0,t-i[a.GP3].includedIops),c=Math.max(0,o-i[a.GP3].includedIops),u=l*(r[e]?.iops??0),m=c*(r[s]?.iops??0);return{oldPrice:(u*(1+n)).toFixed(2),newPrice:(m*(1+n)).toFixed(2)}}{let a="gp3"===e?(t-i[e].includedIops)*r[e].iops:t*(r[e]?.iops??0),l=o*(r[s]?.iops??0);return{oldPrice:(a*(1+n)).toFixed(2),newPrice:(l*(1+n)).toFixed(2)}}},"calculateIopsRequiredForThroughput",0,e=>Math.max(125,Math.ceil(e/.256)),"calculateMaxIopsAllowedForDiskSizeWithGp3",0,e=>Math.max(3e3,Math.min(500*e,c)),"calculateMaxIopsAllowedForDiskSizeWithio2",0,e=>Math.min(500*e,256e3),"calculateMaxIopsForComputeSize",0,e=>{let t=s.computeInstanceAddonVariantIdSchema.safeParse(e);return t.success?s.COMPUTE_MAX_IOPS[t.data]??0:0},"calculateMaxThroughput",0,e=>Math.min(.256*e,u),"calculateThroughputPrice",0,({storageType:e,newThroughput:t,oldThroughput:s,numReplicas:o=0})=>{if(e===a.GP3&&t){let e=Math.max(0,s-i[a.GP3].includedThroughput),n=Math.max(0,t-i[a.GP3].includedThroughput),l=e*r[a.GP3].throughput,c=n*r[a.GP3].throughput;return{oldPrice:(l*(1+o)).toFixed(2),newPrice:(c*(1+o)).toFixed(2)}}return{oldPrice:"0.00",newPrice:"0.00"}},"formatNumber",0,e=>e.toLocaleString("en-US"),"getAvailableComputeOptions",0,function(e,t){let a=e.find(e=>"compute_instance"===e.type),r=a?.variants.flatMap(e=>{let a=s.computeInstanceAddonVariantIdSchema.safeParse(e.identifier);return!a.success||t&&l(e.meta)&&!(!e.meta.supported_cloud_providers||e.meta.supported_cloud_providers.includes(t))?[]:[{...e,identifier:a.data,meta:l(e.meta)?e.meta:void 0}]})??[];return(a?.variants??[]).some(e=>"ci_micro"===e.identifier)||r.unshift({identifier:"ci_micro",name:"Micro",price_description:"$0.01344/hour (~$10/month)",price:.01344,price_interval:"hourly",price_type:"usage",meta:{memory_gb:n.INSTANCE_MICRO_SPECS.memory_gb,baseline_disk_io_mbs:n.INSTANCE_MICRO_SPECS.baseline_disk_io_mbs,max_disk_io_mbs:n.INSTANCE_MICRO_SPECS.max_disk_io_mbs,connections_direct:n.INSTANCE_MICRO_SPECS.connections_direct,connections_pooler:n.INSTANCE_MICRO_SPECS.connections_pooler}}),r.unshift({identifier:"ci_nano",name:"Nano",price_description:"$0/hour (~$0/month)",price:0,price_interval:"hourly",price_type:"usage",meta:{memory_gb:n.INSTANCE_NANO_SPECS.memory_gb,baseline_disk_io_mbs:n.INSTANCE_NANO_SPECS.baseline_disk_io_mbs,max_disk_io_mbs:n.INSTANCE_NANO_SPECS.max_disk_io_mbs,connections_direct:n.INSTANCE_NANO_SPECS.connections_direct,connections_pooler:n.INSTANCE_NANO_SPECS.connections_pooler}}),r},"hasBurstableIO",0,e=>!!e&&!!d(e)&&_.has(m[e]),"mapAddOnVariantIdToComputeSize",0,(e="ci_nano")=>{let t=s.computeInstanceAddonVariantIdSchema.safeParse(e);return t.success?p[t.data]:p.ci_nano},"mapComputeSizeNameToAddonVariantId",0,e=>m[(e&&d(e)?e:void 0)??"nano"]],961753);let g=["pico","nano","micro","small","medium"];e.s(["getComputeCpuLabel",0,(e,t)=>g.includes(e.toLowerCase().replace(/^ci_/,""))?"Shared compute":"number"==typeof t?`Dedicated \xb7 ${t} vCPUs`:"Dedicated compute"],193835)},820308,775159,e=>{"use strict";e.i(850036);var t,s,a=e.i(479084),r=e.i(55956),i=((t={}).API="api",t.STORAGE="storage",t.AUTH="auth",t.QUERY_PERFORMANCE="query_performance",t.DATABASE="database",t);e.s(["Presets",()=>i],775159);var o=e.i(562616),n=((s={}).LAST_10_MINUTES="Last 10 minutes",s.LAST_30_MINUTES="Last 30 minutes",s.LAST_60_MINUTES="Last 60 minutes",s.LAST_3_HOURS="Last 3 hours",s.LAST_24_HOURS="Last 24 hours",s.LAST_7_DAYS="Last 7 days",s.LAST_14_DAYS="Last 14 days",s.LAST_28_DAYS="Last 28 days",s);let l=[{text:"Last 10 minutes",calcFrom:()=>(0,r.default)().subtract(10,"minute").toISOString(),calcTo:()=>(0,r.default)().toISOString(),availableIn:["free","pro","team","enterprise","platform"]},{text:"Last 30 minutes",calcFrom:()=>(0,r.default)().subtract(30,"minute").toISOString(),calcTo:()=>(0,r.default)().toISOString(),availableIn:["free","pro","team","enterprise","platform"]},{text:"Last 60 minutes",calcFrom:()=>(0,r.default)().subtract(1,"hour").toISOString(),calcTo:()=>(0,r.default)().toISOString(),default:!0,availableIn:["free","pro","team","enterprise","platform"]},{text:"Last 3 hours",calcFrom:()=>(0,r.default)().subtract(3,"hour").toISOString(),calcTo:()=>(0,r.default)().toISOString(),availableIn:["free","pro","team","enterprise","platform"]},{text:"Last 24 hours",calcFrom:()=>(0,r.default)().subtract(1,"day").toISOString(),calcTo:()=>(0,r.default)().toISOString(),availableIn:["free","pro","team","enterprise","platform"]},{text:"Last 7 days",calcFrom:()=>(0,r.default)().subtract(7,"day").toISOString(),calcTo:()=>(0,r.default)().toISOString(),availableIn:["pro","team","enterprise"]},{text:"Last 14 days",calcFrom:()=>(0,r.default)().subtract(14,"day").toISOString(),calcTo:()=>(0,r.default)().toISOString(),availableIn:["team","enterprise"]},{text:"Last 28 days",calcFrom:()=>(0,r.default)().subtract(28,"day").toISOString(),calcTo:()=>(0,r.default)().toISOString(),availableIn:["team","enterprise"]}],c={iso_timestamp_start:l[0].calcFrom(),iso_timestamp_end:l[0].calcTo()};function u(e){return e.replace(/^WHERE/,"AND")}function m(e,t=!0){if(0===e.length)return o.safeSql``;let s=e.map(e=>{let t,s=e.key.split("."),a=[s[s.length-2],s[s.length-1]].join("."),r=e.key.includes(".")?a:e.key;try{t=(0,o.quotedIdent)(r)}catch{return null}let i=isNaN(Number(e.value))?(0,o.analyticsLiteral)(String(e.value)):(0,o.analyticsLiteral)(Number(e.value));switch(e.compare){case"matches":return o.safeSql`REGEXP_CONTAINS(${t}, ${i})`;case"is":default:return o.safeSql`${t} = ${i}`;case"!=":return o.safeSql`${t} != ${i}`;case">=":return o.safeSql`${t} >= ${i}`;case"<=":return o.safeSql`${t} <= ${i}`;case">":return o.safeSql`${t} > ${i}`;case"<":return o.safeSql`${t} < ${i}`}}).filter(e=>null!==e);if(0===s.length)return o.safeSql``;let a=(0,o.joinSqlFragments)(s," AND ");return t?o.safeSql`WHERE ${a}`:o.safeSql`AND ${a}`}function d(e,t=!0){let s=e.map(e=>{let t=o.safeSql`log_attributes[${(0,o.analyticsLiteral)(e.key)}]`,s=(0,o.analyticsLiteral)(String(e.value));switch(e.compare){case"matches":return o.safeSql`match(${t}, ${s})`;case"is":return o.safeSql`${t} = ${s}`;case"!=":return o.safeSql`${t} != ${s}`;case">=":case"<=":case">":case"<":{let s="number"==typeof e.value?e.value:Number(e.value.trim());if(""===String(e.value).trim()||!Number.isFinite(s))return null;let a=o.safeSql`toFloat64OrNull(${t})`,r=(0,o.analyticsLiteral)(s);if(">="===e.compare)return o.safeSql`${a} >= ${r}`;if("<="===e.compare)return o.safeSql`${a} <= ${r}`;if(">"===e.compare)return o.safeSql`${a} > ${r}`;return o.safeSql`${a} < ${r}`}}}).filter(e=>null!==e);if(0===s.length)return o.safeSql``;let a=(0,o.joinSqlFragments)(s," AND ");return t?o.safeSql`WHERE ${a}`:o.safeSql`AND ${a}`}let _=o.safeSql`toUnixTimestamp(toStartOfHour(logs.timestamp)) * 1000000`,p=o.safeSql`toInt32OrZero(log_attributes['response.status_code'])`,g=o.safeSql`toFloat64OrNull(log_attributes['response.origin_time'])`,h=o.safeSql`
+  log_attributes['request.path'] as path,
+  log_attributes['request.method'] as method,
+  log_attributes['request.search'] as search,
+  ${p} as status_code`,f=o.safeSql`
+  log_attributes['request.path'],
+  log_attributes['request.method'],
+  log_attributes['request.search'],
+  ${p}`,b=o.safeSql`${p} >= 400`;function y(e,t){let s=t?o.safeSql`where source = 'edge_logs' and ${t}`:o.safeSql`where source = 'edge_logs'`,a=d(e,!1);return a.length>0?o.safeSql`${s} ${a}`:s}function S(e){return o.safeSql`(${(0,o.joinSqlFragments)(e.map(o.analyticsLiteral),", ")})`}let x=S(["HIT","STALE","REVALIDATED","UPDATING"]),q=S(["MISS","NONE/UNKNOWN","EXPIRED","BYPASS","DYNAMIC"]),v={[i.API]:{title:"API",queries:{totalRequests:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-total-requests
+        select
+          cast(timestamp_trunc(t.timestamp, hour) as datetime) as timestamp,
+          count(t.id) as count
+        FROM edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+          ${m(e)}
+        GROUP BY
+          timestamp
+        ORDER BY
+          timestamp ASC`,safeSqlOtel:e=>o.safeSql`
+        select
+          ${_} as timestamp,
+          toFloat64(count()) as count
+        from logs
+        ${y(e)}
+        group by ${_}
+        order by ${_} asc
+        limit 50000`},topRoutes:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-top-routes
+        select
+          request.path as path,
+          request.method as method,
+          request.search as search,
+          response.status_code as status_code,
+          count(t.id) as count
+        from edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+          ${m(e)}
+        group by
+          request.path, request.method, request.search, response.status_code
+        order by
+          count desc
+        limit 10
+        `,safeSqlOtel:e=>o.safeSql`
+        select
+          ${h},
+          toFloat64(count()) as count
+        from logs
+        ${y(e)}
+        group by ${f}
+        order by count desc
+        limit 10`},errorCounts:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-error-counts
+        select
+          cast(timestamp_trunc(t.timestamp, hour) as datetime) as timestamp,
+          count(t.id) as count
+        FROM edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+        WHERE
+          response.status_code >= 400
+        ${m(e,!1)}
+        GROUP BY
+          timestamp
+        ORDER BY
+          timestamp ASC
+        `,safeSqlOtel:e=>o.safeSql`
+        select
+          ${_} as timestamp,
+          toFloat64(count()) as count
+        from logs
+        ${y(e,b)}
+        group by ${_}
+        order by ${_} asc
+        limit 50000`},topErrorRoutes:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-top-error-routes
+        select
+          request.path as path,
+          request.method as method,
+          request.search as search,
+          response.status_code as status_code,
+          count(t.id) as count
+        from edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+        where
+          response.status_code >= 400
+        ${m(e,!1)}
+        group by
+          request.path, request.method, request.search, response.status_code
+        order by
+          count desc
+        limit 10
+        `,safeSqlOtel:e=>o.safeSql`
+        select
+          ${h},
+          toFloat64(count()) as count
+        from logs
+        ${y(e,b)}
+        group by ${f}
+        order by count desc
+        limit 10`},responseSpeed:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-response-speed
+        select
+          cast(timestamp_trunc(t.timestamp, hour) as datetime) as timestamp,
+          avg(response.origin_time) as avg
+        FROM
+          edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+          ${m(e)}
+        GROUP BY
+          timestamp
+        ORDER BY
+          timestamp ASC
+      `,safeSqlOtel:e=>o.safeSql`
+        select
+          ${_} as timestamp,
+          avg(${g}) as avg
+        from logs
+        ${y(e)}
+        group by ${_}
+        order by ${_} asc
+        limit 50000`},topSlowRoutes:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-top-slow-routes
+        select
+          request.path as path,
+          request.method as method,
+          request.search as search,
+          response.status_code as status_code,
+          count(t.id) as count,
+          avg(response.origin_time) as avg
+        from edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+        ${m(e)}
+        group by
+          request.path, request.method, request.search, response.status_code
+        order by
+          avg desc
+        limit 10
+        `,safeSqlOtel:e=>o.safeSql`
+        select
+          ${h},
+          toFloat64(count()) as count,
+          avg(${g}) as avg
+        from logs
+        ${y(e)}
+        group by ${f}
+        order by avg desc
+        limit 10`},networkTraffic:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-network-traffic
+        select
+          cast(timestamp_trunc(t.timestamp, hour) as datetime) as timestamp,
+          coalesce(
+            safe_divide(
+              sum(
+                cast(coalesce(headers.content_length, "0") as int64)
+              ),
+              1000000
+            ),
+            0
+          ) as ingress_mb,
+          coalesce(
+            safe_divide(
+              sum(
+                cast(coalesce(resp_headers.content_length, "0") as int64)
+              ),
+              1000000
+            ),
+            0
+          ) as egress_mb,
+        FROM
+          edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+          cross join unnest(response.headers) as resp_headers
+          ${m(e)}
+        GROUP BY
+          timestamp
+        ORDER BY
+          timestamp ASC
+        `,safeSqlOtel:e=>o.safeSql`
+        select
+          ${_} as timestamp,
+          sum(toFloat64OrZero(log_attributes['request.headers.content_length'])) / 1000000 as ingress_mb,
+          sum(toFloat64OrZero(log_attributes['response.headers.content_length'])) / 1000000 as egress_mb
+        from logs
+        ${y(e)}
+        group by ${_}
+        order by ${_} asc
+        limit 50000`},requestsByCountry:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-api-requests-by-country
+        select
+          cf.country as country,
+          count(t.id) as count
+        from edge_logs t
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          cross join unnest(m.request) as request
+          cross join unnest(request.headers) as headers
+          cross join unnest(request.cf) as cf
+        where
+          cf.country is not null
+        ${m(e,!1)}
+        group by
+          cf.country
+        `,safeSqlOtel:e=>o.safeSql`
+        select
+          log_attributes['request.cf.country'] as country,
+          toFloat64(count()) as count
+        from logs
+        ${y(e,o.safeSql`notEmpty(log_attributes['request.cf.country'])`)}
+        group by country
+        order by count desc
+        limit 250`}}},[i.AUTH]:{title:"",queries:{}},[i.STORAGE]:{title:"Storage",queries:{cacheHitRate:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-storage-cache-hit-rate
+SELECT
+  timestamp_trunc(timestamp, hour) as timestamp,
+  countif( h.cf_cache_status in ('HIT', 'STALE', 'REVALIDATED', 'UPDATING') ) as hit_count,
+  countif( h.cf_cache_status in ('MISS', 'NONE/UNKNOWN', 'EXPIRED', 'BYPASS', 'DYNAMIC') ) as miss_count
+from edge_logs f
+  cross join unnest(f.metadata) as m
+  cross join unnest(m.request) as r
+  cross join unnest(m.response) as res
+  cross join unnest(res.headers) as h
+where starts_with(r.path, '/storage/v1/object') and r.method = 'GET'
+  ${m(e,!1)}
+group by timestamp
+order by timestamp desc
+`,safeSqlOtel:e=>o.safeSql`
+select
+  ${_} as timestamp,
+  toFloat64(countIf(log_attributes['response.headers.cf_cache_status'] in ${x})) as hit_count,
+  toFloat64(countIf(log_attributes['response.headers.cf_cache_status'] in ${q})) as miss_count
+from logs
+where source = 'edge_logs'
+  and startsWith(log_attributes['request.path'], '/storage/v1/object')
+  and log_attributes['request.method'] = 'GET'
+  ${d(e,!1)}
+group by ${_}
+order by ${_} desc
+limit 50000`},topCacheMisses:{queryType:"logs",safeSql:e=>o.safeSql`
+        -- reports-storage-top-cache-misses
+SELECT
+  r.path as path,
+  r.search as search,
+  count(id) as count
+from edge_logs f
+  cross join unnest(f.metadata) as m
+  cross join unnest(m.request) as r
+  cross join unnest(m.response) as res
+  cross join unnest(res.headers) as h
+where starts_with(r.path, '/storage/v1/object')
+  and r.method = 'GET'
+  and h.cf_cache_status in ('MISS', 'NONE/UNKNOWN', 'EXPIRED', 'BYPASS', 'DYNAMIC')
+  ${m(e,!1)}
+group by path, search
+order by count desc
+limit 12
+    `,safeSqlOtel:e=>o.safeSql`
+select
+  log_attributes['request.path'] as path,
+  log_attributes['request.search'] as search,
+  toFloat64(count()) as count
+from logs
+where source = 'edge_logs'
+  and startsWith(log_attributes['request.path'], '/storage/v1/object')
+  and log_attributes['request.method'] = 'GET'
+  and log_attributes['response.headers.cf_cache_status'] in ${q}
+  ${d(e,!1)}
+group by log_attributes['request.path'], log_attributes['request.search']
+order by count desc
+limit 12`}}},[i.QUERY_PERFORMANCE]:{title:"Query performance",queries:{mostFrequentlyInvoked:{queryType:"db",safeSql:(e,t,s,r=!1,i=!1)=>a.safeSql`
+        -- reports-query-performance-most-frequently-invoked
+set search_path to public, extensions;
+
+select
+    auth.rolname,
+    statements.query,
+    statements.calls,
+    -- -- Postgres 13, 14, 15
+    statements.total_exec_time + statements.total_plan_time as total_time,
+    statements.min_exec_time + statements.min_plan_time as min_time,
+    statements.max_exec_time + statements.max_plan_time as max_time,
+    statements.mean_exec_time + statements.mean_plan_time as mean_time,
+    -- -- Postgres <= 12
+    -- total_time,
+    -- min_time,
+    -- max_time,
+    -- mean_time,
+    coalesce(statements.rows::numeric / nullif(statements.calls, 0), 0) as avg_rows,
+    statements.rows as rows_read,
+    case
+      when (statements.shared_blks_hit + statements.shared_blks_read) > 0
+      then round(
+        (statements.shared_blks_hit * 100.0) /
+        (statements.shared_blks_hit + statements.shared_blks_read),
+        2
+      )
+      else 0
+    end as cache_hit_rate${r?a.safeSql`,
+    case
+      when (lower(statements.query) like 'select%' or lower(statements.query) like 'with pgrst%')
+      then (
+        select json_build_object(
+          'has_suggestion', array_length(index_statements, 1) > 0,
+          'startup_cost_before', startup_cost_before,
+          'startup_cost_after', startup_cost_after,
+          'total_cost_before', total_cost_before,
+          'total_cost_after', total_cost_after,
+          'index_statements', index_statements
+        )
+        from index_advisor(statements.query)
+      )
+      else null
+    end as index_advisor_result`:a.safeSql``}
+  from pg_stat_statements as statements
+    inner join pg_authid as auth on statements.userid = auth.oid
+  -- skip queries that were never actually executed
+  WHERE statements.calls > 0 ${t?u(t):a.safeSql``}
+  ${s||a.safeSql`order by statements.calls desc`}
+  limit 20`},mostTimeConsuming:{queryType:"db",safeSql:(e,t,s,r=!1,i=!1)=>a.safeSql`
+        -- reports-query-performance-most-time-consuming
+set search_path to public, extensions;
+
+-- compute total time once up front so we don't need a window function over all rows
+with grand_total as (
+  select coalesce(nullif(sum(total_exec_time + total_plan_time), 0), 1) as v
+  from pg_stat_statements where calls > 0
+)
+select
+    auth.rolname,
+    statements.query,
+    statements.calls,
+    statements.total_exec_time + statements.total_plan_time as total_time,
+    statements.mean_exec_time + statements.mean_plan_time as mean_time,
+    coalesce(
+      ((statements.total_exec_time + statements.total_plan_time) /
+        (select v from grand_total)) *
+        100,
+      0
+    ) as prop_total_time${r?a.safeSql`,
+    case
+      when (lower(statements.query) like 'select%' or lower(statements.query) like 'with pgrst%')
+      then (
+        select json_build_object(
+          'has_suggestion', array_length(index_statements, 1) > 0,
+          'startup_cost_before', startup_cost_before,
+          'startup_cost_after', startup_cost_after,
+          'total_cost_before', total_cost_before,
+          'total_cost_after', total_cost_after,
+          'index_statements', index_statements
+        )
+        from index_advisor(statements.query)
+      )
+      else null
+    end as index_advisor_result`:a.safeSql``}
+  from pg_stat_statements as statements
+    inner join pg_authid as auth on statements.userid = auth.oid
+  -- skip queries that were never actually executed
+  WHERE statements.calls > 0 ${t?u(t):a.safeSql``}
+  ${s||a.safeSql`order by total_time desc`}
+  limit 20`},slowestExecutionTime:{queryType:"db",safeSql:(e,t,s,r=!1,i=!1)=>a.safeSql`
+        -- reports-query-performance-slowest-execution-time
+set search_path to public, extensions;
+
+select
+    auth.rolname,
+    statements.query,
+    statements.calls,
+    -- -- Postgres 13, 14, 15
+    statements.total_exec_time + statements.total_plan_time as total_time,
+    statements.min_exec_time + statements.min_plan_time as min_time,
+    statements.max_exec_time + statements.max_plan_time as max_time,
+    statements.mean_exec_time + statements.mean_plan_time as mean_time,
+    -- -- Postgres <= 12
+    -- total_time,
+    -- min_time,
+    -- max_time,
+    -- mean_time,
+    coalesce(statements.rows::numeric / nullif(statements.calls, 0), 0) as avg_rows${r?a.safeSql`,
+    case
+      when (lower(statements.query) like 'select%' or lower(statements.query) like 'with pgrst%')
+      then (
+        select json_build_object(
+          'has_suggestion', array_length(index_statements, 1) > 0,
+          'startup_cost_before', startup_cost_before,
+          'startup_cost_after', startup_cost_after,
+          'total_cost_before', total_cost_before,
+          'total_cost_after', total_cost_after,
+          'index_statements', index_statements
+        )
+        from index_advisor(statements.query)
+      )
+      else null
+    end as index_advisor_result`:a.safeSql``}
+  from pg_stat_statements as statements
+    inner join pg_authid as auth on statements.userid = auth.oid
+  -- skip queries that were never actually executed
+  WHERE statements.calls > 0 ${t?u(t):a.safeSql``}
+  ${s||a.safeSql`order by max_time desc`}
+  limit 20`},queryHitRate:{queryType:"db",safeSql:e=>a.safeSql`-- reports-query-performance-cache-and-index-hit-rate
+select
+    'index hit rate' as name,
+    (sum(idx_blks_hit)) / nullif(sum(idx_blks_hit + idx_blks_read),0) as ratio
+  from pg_statio_user_indexes
+  union all
+  select
+    'table hit rate' as name,
+    sum(heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read),0) as ratio
+  from pg_statio_user_tables;`},unified:{queryType:"db",safeSql:(e,t,s,r=!1,i=!1,o=1,n=20)=>{let l=(o-1)*n,c=i&&r?l+10*n:l+n,m=r?Math.min(c,500):c;return a.safeSql`
+        -- reports-query-performance-unified
+        set search_path to public, extensions;
+
+        -- compute total time once up front so we don't need a window function over all rows
+        with grand_total as (
+          select coalesce(nullif(sum(total_exec_time + total_plan_time), 0), 1) as v
+          from pg_stat_statements where calls > 0
+        ),
+        base as (
+          select
+            auth.rolname,
+            statements.query,
+            statements.calls,
+            statements.total_exec_time + statements.total_plan_time as total_time,
+            statements.min_exec_time + statements.min_plan_time as min_time,
+            statements.max_exec_time + statements.max_plan_time as max_time,
+            statements.mean_exec_time + statements.mean_plan_time as mean_time,
+            coalesce(statements.rows::numeric / nullif(statements.calls, 0), 0) as avg_rows,
+            statements.rows as rows_read,
+            statements.shared_blks_hit as debug_hit,
+            statements.shared_blks_read as debug_read,
+            case
+              when (statements.shared_blks_hit + statements.shared_blks_read) > 0
+              then (statements.shared_blks_hit::numeric * 100.0) /
+                   (statements.shared_blks_hit + statements.shared_blks_read)
+              else 0
+            end as cache_hit_rate,
+            coalesce(
+              ((statements.total_exec_time + statements.total_plan_time) /
+                (select v from grand_total)) *
+                100,
+              0
+            ) as prop_total_time
+          from pg_stat_statements as statements
+            inner join pg_authid as auth on statements.userid = auth.oid
+          -- skip queries that were never actually executed
+          WHERE statements.calls > 0 ${t?u(t):a.safeSql``}
+          ${s||a.safeSql`order by total_time desc`}
+          ${null!==m?a.safeSql`limit ${(0,a.literal)(m)}`:a.safeSql``}
+        ),
+        query_results as (
+          select
+            base.*${r?a.safeSql`,
+            case
+              when (lower(base.query) like 'select%' or lower(base.query) like 'with pgrst%')
+              then (
+                select json_build_object(
+                  'has_suggestion', array_length(index_statements, 1) > 0,
+                  'startup_cost_before', startup_cost_before,
+                  'startup_cost_after', startup_cost_after,
+                  'total_cost_before', total_cost_before,
+                  'total_cost_after', total_cost_after,
+                  'index_statements', index_statements
+                )
+                from index_advisor(base.query)
+              )
+              else null
+            end as index_advisor_result`:a.safeSql``}
+          from base
+        )
+        select *
+        from query_results
+        ${i&&r?a.safeSql`where (index_advisor_result->>'has_suggestion')::boolean = true`:a.safeSql``}
+        ${s||a.safeSql`order by total_time desc`}
+        limit ${(0,a.literal)(n)} offset ${(0,a.literal)(l)}`}},slowQueriesCount:{queryType:"db",safeSql:()=>a.safeSql`
+        -- reports-query-performance-slow-queries-count
+        set search_path to public, extensions;
+
+        -- Count of slow queries (> 1 second average)
+        SELECT count(*) as slow_queries_count
+        -- alias needed to reference columns in WHERE
+        FROM pg_stat_statements as statements
+        -- skip never-executed queries; mean_exec_time > 1000ms = avg over 1 second
+        WHERE statements.calls > 0 AND statements.mean_exec_time > 1000;`},queryMetrics:{queryType:"db",safeSql:(e,t,s,r=!1,i=!1)=>a.safeSql`
+        -- reports-query-performance-metrics
+        set search_path to public, extensions;
+
+        SELECT
+          COALESCE(ROUND(AVG(statements.rows::numeric / NULLIF(statements.calls, 0)), 1), 0) as avg_rows_per_call,
+          COUNT(*) FILTER (WHERE statements.total_exec_time + statements.total_plan_time > 1000) as slow_queries,
+          COALESCE(
+            ROUND(
+              SUM(statements.shared_blks_hit) * 100.0 /
+              NULLIF(SUM(statements.shared_blks_hit + statements.shared_blks_read), 0),
+              2
+            ), 0
+          ) || '%' as cache_hit_rate
+        FROM pg_stat_statements as statements
+        -- skip queries that were never actually executed
+        WHERE statements.calls > 0 ${t?u(t):a.safeSql``}
+        ${s||a.safeSql``}`}}},[i.DATABASE]:{title:"database",queries:{largeObjects:{queryType:"db",safeSql:e=>a.safeSql`-- reports-database-large-objects
+SELECT
+        SCHEMA_NAME,
+        relname,
+        table_size
+      FROM
+        (SELECT
+          pg_catalog.pg_namespace.nspname AS SCHEMA_NAME,
+          relname,
+          pg_total_relation_size(pg_catalog.pg_class.oid) AS table_size
+        FROM pg_catalog.pg_class
+        JOIN pg_catalog.pg_namespace ON relnamespace = pg_catalog.pg_namespace.oid
+        ) t
+      WHERE SCHEMA_NAME NOT LIKE 'pg_%'
+      ORDER BY table_size DESC
+      LIMIT 5;`}}}};e.s(["BURSTABLE_IO_METRIC_KEYS",0,["disk_io_budget","disk_io_consumption"],"DEFAULT_QUERY_PARAMS",0,c,"DEPRECATED_REPORTS",0,["total_realtime_ingress","total_rest_options_requests","total_auth_ingress","total_auth_get_requests","total_auth_post_requests","total_auth_patch_requests","total_auth_options_requests","total_storage_options_requests","total_storage_patch_requests","total_options_requests","total_rest_ingress","total_rest_get_requests","total_rest_post_requests","total_rest_patch_requests","total_rest_delete_requests","total_storage_get_requests","total_storage_post_requests","total_storage_delete_requests","total_auth_delete_requests","total_get_requests","total_patch_requests","total_post_requests","total_ingress","total_delete_requests"],"EDGE_FUNCTION_REGIONS",0,[{key:"ap-northeast-1",label:"Tokyo"},{key:"ap-northeast-2",label:"Seoul"},{key:"ap-south-1",label:"Mumbai"},{key:"ap-southeast-1",label:"Singapore"},{key:"ap-southeast-2",label:"Sydney"},{key:"ca-central-1",label:"Canada Central"},{key:"us-east-1",label:"N. Virginia"},{key:"us-west-1",label:"N. California"},{key:"us-west-2",label:"Oregon"},{key:"eu-central-1",label:"Frankfurt"},{key:"eu-west-1",label:"Ireland"},{key:"eu-west-2",label:"London"},{key:"eu-west-3",label:"Paris"},{key:"sa-east-1",label:"São Paulo"}],"LAYOUT_COLUMN_COUNT",0,2,"PRESET_CONFIG",0,v,"REPORTS_DATEPICKER_HELPERS",0,l,"REPORT_DATERANGE_HELPER_LABELS",()=>n,"generateRegexpWhereSafe",0,m],820308)},297306,e=>{"use strict";var t=e.i(221628),s=e.i(391141),a=e.i(416340),r=e.i(837710),i=e.i(843778),o=e.i(71049),n=e.i(479095),l=e.i(871895),c=e.i(108151),u=e.i(961753),m=e.i(168597),d=e.i(540203),_=e.i(144676),p=e.i(193835),g=e.i(967052);let h=()=>(0,t.jsxs)("svg",{width:10,height:10,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.5",strokeLinecap:"round",strokeLinejoin:"round",children:[(0,t.jsx)("polyline",{points:"17 18 12 13 7 18",className:"animate-chevron-up",style:{animationDelay:"0s"}}),(0,t.jsx)("polyline",{points:"17 11 12 6 7 11",className:"animate-chevron-up",style:{animationDelay:"0.3s"}})]}),f=({label:e,stat:s})=>(0,t.jsxs)("div",{className:"flex flex-row gap-2",children:[(0,t.jsx)("span",{className:"text-sm text-foreground-light w-16",children:e}),(0,t.jsx)("span",{className:"text-sm",children:s})]});e.s(["ChevronsUpAnimated",0,h,"ComputeBadgeWrapper",0,({slug:e,projectRef:b,cloudProvider:y,computeSize:S,resourceWarnings:x,badgeClassName:q})=>{let[v,I]=(0,a.useState)(!1),{data:E,isPending:C}=(0,_.useProjectAddonsQuery)({projectRef:b},{enabled:v}),w=(0,u.getAvailableComputeOptions)(E?.available_addons??[],y),k=w.find(e=>e.identifier===`ci_${S}`)?.meta,P=w[w.length-1]?.identifier,T=S===P?.replace("ci_",""),{data:j,isPending:O}=(0,d.useOrgSubscriptionQuery)({orgSlug:e},{enabled:v}),A=j?.plan.id!=="free"&&"nano"===S,N=!!x?.cpu_exhaustion||!!x?.memory_and_swap_exhaustion||!!x?.disk_space_exhaustion||!!x?.disk_io_exhaustion,$=A&&N,L=(0,g.useTrack)();return S?(0,t.jsxs)(o.HoverCard,{onOpenChange:()=>I(!v),openDelay:280,children:[(0,t.jsx)(o.HoverCardTrigger,{asChild:!0,className:"group",onClick:e=>e.stopPropagation(),children:(0,t.jsx)("div",{className:(0,i.cn)("flex items-center",$&&"animate-badge-pulse"),children:(0,t.jsxs)("div",{className:(0,i.cn)("flex",$&&"relative inline-flex overflow-hidden rounded-sm"),children:[(0,t.jsx)(l.ComputeBadge,{infraComputeSize:S,icon:$&&(0,t.jsx)(h,{}),className:(0,i.cn)($&&"text-brand-600 border-brand-500 bg-brand-default/10 gap-1",q)}),$&&(0,t.jsx)("span",{className:"animate-badge-shimmer pointer-events-none absolute inset-0 bg-linear-to-br from-transparent via-brand-default/20 to-transparent blur-md"})]})})}),(0,t.jsxs)(o.HoverCardContent,{side:"bottom",align:"start",className:"p-0 overflow-hidden w-96",onClick:e=>e.stopPropagation(),children:[(0,t.jsx)("div",{className:"p-2 px-5 text-xs text-foreground-lighter",children:"Compute size"}),(0,t.jsx)(n.Separator,{}),(0,t.jsxs)("div",{className:"p-3 px-5 flex flex-row gap-4",children:[(0,t.jsx)("div",{children:(0,t.jsx)(l.ComputeBadge,{infraComputeSize:S})}),(0,t.jsx)("div",{className:"flex flex-col gap-4",children:C||O?(0,t.jsx)(t.Fragment,{children:(0,t.jsxs)("div",{className:"flex flex-col gap-1",children:[(0,t.jsx)(c.ShimmeringLoader,{className:"h-[20px] py-0 w-32"}),(0,t.jsx)(c.ShimmeringLoader,{className:"h-[20px] py-0 w-32"})]})}):(0,t.jsx)(t.Fragment,{children:(0,t.jsx)("div",{className:"flex flex-col gap-1",children:"nano"===S?(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)(f,{label:"CPU",stat:"Shared compute"}),(0,t.jsx)(f,{label:"Memory",stat:"Up to 0.5 GB"})]}):void 0!==k?(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)(f,{label:"CPU",stat:(0,p.getComputeCpuLabel)(S??"",k.cpu_cores)}),(0,t.jsx)(f,{label:"Memory",stat:`${k.memory_gb??"-"} GB`})]}):null})})})]}),(!T||A)&&(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)(n.Separator,{}),(0,t.jsxs)("div",{className:"p-3 px-5 text-sm flex flex-col gap-2 bg-studio",children:[(0,t.jsxs)("div",{className:"flex flex-col gap-0",children:[(0,t.jsx)("p",{className:"text-foreground",children:A?"Free upgrade to Micro available":"Unlock more compute"}),(0,t.jsx)("p",{className:"text-foreground-light",children:A?"Paid plans include a free upgrade to Micro compute.":"Scale your project up to 64 vCPUs and 256 GB RAM."})]}),(0,t.jsx)("div",{children:(0,t.jsx)(r.Button,{asChild:!0,onClick:()=>{L("compute_badge_upgrade_clicked",{computeSize:S??"unknown",planId:j?.plan.id??"unknown",upgradeType:A?"free_micro_upgrade":"compute_upgrade"})},children:(0,t.jsx)(s.default,{href:(0,m.getInfrastructurePath)(b),children:"Upgrade compute"})})})]})]})]})]}):null}])},598952,210942,e=>{"use strict";var t=e.i(10429);let s={is_readonly_mode_enabled:{bannerContent:{warning:{title:"Your project is currently in read-only mode and is no longer accepting write requests",description:"You will need to manually override read-only mode and reduce the disk size to below 95%"},critical:{title:"Your project is currently in read-only mode and is no longer accepting write requests",description:"You will need to manually override read-only mode and reduce the disk size to below 95%"}},cardContent:{warning:{title:"Project is in read-only mode",description:"Database is no longer accepting write requests."},critical:{title:"Project is in read-only mode",description:"Database is no longer accepting write requests."}},docsUrl:`${t.DOCS_URL}/guides/platform/database-size#disabling-read-only-mode`,buttonText:"Manage disk",metric:"read_only"},disk_io_exhaustion:{bannerContent:{warning:{title:"Your project is about to deplete its Disk IO Budget",description:"Once exhausted, disk throughput will return to its baseline of {baseline}. The budget refills whenever disk IO demand is at or below baseline. Upgrade your compute or use the AI Assistant to identify and optimize disk-intensive queries."},critical:{title:"Your project has depleted its Disk IO Budget. Disk throughput is at its baseline of {baseline}",description:"Throughput stays at baseline until the budget refills. It refills whenever disk IO demand is at or below baseline. Upgrade your compute to sustain higher throughput, or use the AI Assistant to identify and optimize disk-intensive queries."}},cardContent:{warning:{title:"Project is depleting its Disk IO Budget",description:"It may become unresponsive if fully exhausted"},critical:{title:"Project has depleted its Disk IO Budget",description:"It may become unresponsive"}},docsUrl:`${t.DOCS_URL}/guides/troubleshooting/exhaust-disk-io`,buttonText:"Upgrade compute",aiPrompt:"My database is running out of Disk IO budget. Can you query pg_stat_statements to find the top queries by shared blocks read and written, identify which are causing the most disk I/O, and suggest specific optimizations to reduce disk usage?",resourceLabel:"Disk IO",metricsChartId:"disk-throughput",metric:"disk_io"},disk_space_exhaustion:{bannerContent:{warning:{title:"Your project is about to exhaust its available disk space, and may become unresponsive once fully exhausted",description:"You can opt to increase your disk size up to 200GB on the Database Settings page."},critical:{title:"Your project has exhausted its available disk space, and may become unresponsive",description:"You can opt to increase your disk size up to 200GB on the Database Settings page."}},cardContent:{warning:{title:"Project is exhausting its available disk space",description:"It may become unresponsive if fully exhausted"},critical:{title:"Project has exhausted its available disk space",description:"It may become unresponsive"}},docsUrl:`${t.DOCS_URL}/guides/platform/database-size#disk-management`,buttonText:void 0,resourceLabel:"Disk space",metricsChartId:"disk-size",metric:"disk_space"},cpu_exhaustion:{bannerContent:{warning:{title:"Your project is currently facing high CPU usage, and its performance is affected",description:"Upgrade your compute or use the AI Assistant to identify and optimize CPU-intensive queries."},critical:{title:"Your project's CPU usage is at 100% and its performance is affected",description:"Upgrade your compute or use the AI Assistant to identify and optimize CPU-intensive queries."}},cardContent:{warning:{title:"Project has high CPU usage",description:"Performance is affected"},critical:{title:"Project CPU usage is at 100%",description:"Performance is affected"}},docsUrl:`${t.DOCS_URL}/guides/troubleshooting/high-cpu-usage`,buttonText:"Upgrade compute",aiPrompt:"My database is experiencing high CPU usage. Can you query pg_stat_statements to find the top queries by total execution time and mean execution time, identify which are most CPU-intensive, and suggest specific optimizations such as missing indexes or query rewrites to reduce CPU load?",resourceLabel:"CPU",metricsChartId:"cpu-usage",metric:"cpu"},memory_and_swap_exhaustion:{bannerContent:{warning:{title:"Your project is currently facing high memory usage, and its performance is affected",description:"Upgrade your compute or use the AI Assistant to identify and optimize memory-intensive queries."},critical:{title:"Your project's memory usage is at 100%, and its performance is affected",description:"Upgrade your compute or use the AI Assistant to identify and optimize memory-intensive queries."}},cardContent:{warning:{title:"Project has high memory usage",description:"Performance is affected"},critical:{title:"Project memory usage is at 100%",description:"Performance is affected"}},docsUrl:`${t.DOCS_URL}/guides/troubleshooting/exhaust-ram`,buttonText:"Upgrade compute",aiPrompt:"My database is experiencing high memory and swap usage. Can you query pg_stat_statements to find the top queries by shared buffer hits and rows returned, identify which queries are putting the most pressure on memory, and suggest optimizations to reduce memory consumption?",resourceLabel:"Memory",metricsChartId:"ram-usage",metric:"ram"},auth_rate_limit_exhaustion:{bannerContent:{warning:{title:"Your project has exceeded email rate limits in the past 24 hours and may not reliably send auth related emails to users",description:"Set up a custom SMTP and adjust rate limits where necessary to ensure that emails are sent out reliably."},critical:{title:void 0,description:void 0}},cardContent:{warning:{title:"Your project has exceeded email rate limits",description:"You will need to set up a custom SMTP provider and adjust rate limits where necessary"},critical:{title:void 0,description:void 0}},docsUrl:`${t.DOCS_URL}/guides/platform/going-into-prod#auth-rate-limits`,buttonText:"Enable custom SMTP",resourceLabel:"Auth rate limits",metric:"auth_email_rate_limit"},multiple_resource_warnings:{bannerContent:{warning:{title:"Your project is exhausting {resources}, which is affecting its performance",description:"Upgrade your compute or use the AI Assistant to identify and optimize the most expensive queries."},critical:{title:"Your project has exhausted {resources}, which is affecting its performance",description:"Upgrade your compute or use the AI Assistant to identify and optimize the most expensive queries."}},cardContent:{warning:{title:"Project is exhausting multiple resources",description:"Performance is affected."},critical:{title:"Project has exhausted multiple resources",description:"Performance is affected."}},docsUrl:void 0,buttonText:"Check usage",aiPrompt:"My database is exhausting multiple resources ({resources}). Can you query pg_stat_statements to identify the most expensive queries overall, and suggest which optimizations would have the biggest impact on reducing resource consumption?",metric:null}};e.s(["RESOURCE_WARNING_MESSAGES",0,s,"isResourceWarningMessageKey",0,e=>Object.hasOwn(s,e)],598952);var a=e.i(820308),r=e.i(168597);let i=["disk_io","cpu","ram"],o=["disk_io_exhaustion","cpu_exhaustion","memory_and_swap_exhaustion"],n=(e,t)=>null!=e&&i.includes(e)||t.length>1&&t.every(e=>o.includes(e)),l=new Intl.ListFormat("en-US",{style:"long",type:"conjunction"}),c=(e,t)=>{if(void 0!==e){let a;return e.replaceAll("{resources}",(a=t.flatMap(e=>{let t=s[e]?.resourceLabel;return void 0===t?[]:[t]}),l.format(a)))}};e.s(["applyResourceList",0,c,"getResourceWarningAiPrompt",0,e=>1===e.length?s[e[0]]?.aiPrompt:e.some(e=>o.includes(e))?c(s.multiple_resource_warnings.aiPrompt,e):void 0,"getResourceWarningCorrectionUrl",0,({metric:e,activeWarnings:t,projectRef:s,isFreePlan:a,organizationSlug:i})=>{let o=n(e,t);if(o&&a)return`/org/${i??"_"}/billing?panel=subscriptionPlan&source=resource_exhaustion_banner`;let l=s??"default",c=(0,r.getInfrastructurePath)(l);if(o&&t.length>1)return c;let u={disk_space:c,read_only:c,disk_io:c,cpu:c,ram:c,auth_email_rate_limit:`/project/${l}/auth/rate-limits`,auth_restricted_email_sending:`/project/${l}/auth/smtp`};if(void 0!==e)return null===e?c:u[e]??`${c}#${e}`},"getTroubleshootItems",0,({activeWarnings:e,projectRef:t,aiPrompt:r,showBurstBalanceChart:i=!1})=>{let o=1===e.length;return[...e.flatMap(e=>{let r=((e,t,r=!1)=>{let i="disk_io_exhaustion"===e&&r?"disk-io-burst-balance":s[e]?.metricsChartId;if(void 0===i)return;let o=new URLSearchParams({chart:i,db:t,isHelper:"true",helperText:a.REPORT_DATERANGE_HELPER_LABELS.LAST_3_HOURS});return`/project/${t}/observability/database?${o}#${i}`})(e,t,i),n=s[e]?.resourceLabel;return void 0!==r&&(o||void 0!==n)?[{kind:"metrics",warningType:e,menuLabel:o?"View metrics":`View ${n} metrics`,buttonLabel:"View metrics",href:r}]:[]}),...e.flatMap(e=>{let t=s[e]?.docsUrl,a=s[e]?.resourceLabel;return void 0!==t&&(o||void 0!==a)?[{kind:"docs",warningType:e,menuLabel:o?"Documentation":`${a} documentation`,buttonLabel:"Learn more",href:t}]:[]}),...void 0===r?[]:[{kind:"ai",menuLabel:"Ask AI Assistant",buttonLabel:"Ask AI Assistant"}]]},"getWarningContent",0,(e,t,a)=>{if("is_readonly_mode_enabled"===t)return s.is_readonly_mode_enabled.cardContent.warning;let r=e[t];if("string"==typeof r)return s[t]?.[a]?.[r]},"isComputeUpgradeWarning",0,n],210942)},589314,e=>{"use strict";var t=e.i(125356);e.i(128328);var s=e.i(86086),a=e.i(557282),r=e.i(234745),i=e.i(681328);async function o(e,t){let{data:s,error:a}=await (0,r.get)("/platform/projects-resource-warnings",{params:{query:{ref:e?.ref,slug:e?.slug}},signal:t});return a&&(0,r.handleError)(a),Array.isArray(s)?s:i.EMPTY_ARR}e.s(["useResourceWarningsQuery",0,(e,{enabled:r=!0,...i}={})=>(0,t.useQuery)({queryKey:a.usageKeys.resourceWarnings(e.slug,e.ref),queryFn:({signal:t})=>o(e,t),enabled:s.IS_PLATFORM&&r&&(void 0!==e.ref||void 0!==e.slug),staleTime:3e5,...i})])},566715,748094,e=>{"use strict";var t=e.i(771535);let s={name:"circle-pause",size:24,node:[["circle",{cx:"12",cy:"12",r:"10",key:"1mglay"}],["line",{x1:"10",x2:"10",y1:"15",y2:"9",key:"c1nkhi"}],["line",{x1:"14",x2:"14",y1:"15",y2:"9",key:"h65svq"}]],aliases:["pause-circle"]};s.node;let a=(0,t.default)(s);e.s(["default",0,a],748094),e.s(["PauseCircleIcon",0,a],566715)},32425,e=>{"use strict";var t=e.i(771535);let s={name:"loader",size:24,node:[["path",{d:"M12 2v4",key:"3427ic"}],["path",{d:"m16.2 7.8 2.9-2.9",key:"r700ao"}],["path",{d:"M18 12h4",key:"wj9ykh"}],["path",{d:"m16.2 16.2 2.9 2.9",key:"1bxg5t"}],["path",{d:"M12 18v4",key:"jadmvz"}],["path",{d:"m4.9 19.1 2.9-2.9",key:"bwix9q"}],["path",{d:"M2 12h4",key:"j09sii"}],["path",{d:"m4.9 4.9 2.9 2.9",key:"giyufr"}]]};s.node;let a=(0,t.default)(s);e.s(["LoaderIcon",0,a],32425)},871895,e=>{"use strict";var t=e.i(221628),s=e.i(843778);e.s(["ComputeBadge",0,function({infraComputeSize:e,className:a,icon:r,...i}){let o=e?.toLocaleLowerCase()==="micro"||e?.toLocaleLowerCase()==="nano",n=!!e;return(0,t.jsxs)("div",{className:(0,s.cn)("inline-flex items-center justify-center rounded-sm text-center font-mono uppercase","whitespace-nowrap font-medium tracking-[0.06em] text-[11px] leading-[1.1] px-[5.5px] py-[3px]","transition-all",n?o?"bg-surface-75/50 group-data-[state=open]:bg-surface-75/75 text-foreground-light border border-strong":"bg-brand-default/10 group-data-[state=open]:bg-brand-default/20 text-brand-600 border border-brand-500":"bg-surface-75 group-data-[state=open]:bg-surface-75/20 text-foreground-light border border-strong","group-data-[state=open]:ring-2",o?"group-data-[state=open]:ring-foreground-muted/20":"group-data-[state=open]:ring-brand-default/20",a),...i,children:[e,r&&(0,t.jsx)("span",{className:"flex items-center",children:r})]})}])}]);
+
+//# debugId=5edf018e-dfcd-5ad6-1ecf-da199641d5b2
