@@ -3,11 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <title>StyliCycle - Clothing Delivery</title>
-  <link rel="stylesheet" href="../CSS/style.css">
+  
+  <!-- FIXED: Absolute paths for CSS -->
+  <link rel="stylesheet" href="/CSS/style.css">
+  
+  <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  
+  <!-- Leaflet Map Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     #map {
       position: relative;
@@ -236,7 +246,9 @@
       </div>
     </section>
   </main>
-  <script src="../JS/common.js"></script>
-  <script src="../JS/delivery.js"></script>
+  
+  <!-- FIXED: Absolute paths for JS -->
+  <script src="/JS/common.js"></script>
+  <script src="/JS/delivery.js"></script>
 </body>
 </html>

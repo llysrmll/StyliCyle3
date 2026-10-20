@@ -1,16 +1,18 @@
-// delivery.js - load on delivery.html (after common.js AND after the Leaflet + Leaflet Routing Machine scripts)
-// Same map code as before; deliveries are now saved to the PHP backend instead of localStorage.
+// delivery.js - Updated for Supabase matching exact schema
+
+// ==========================================
+// 1. SUPABASE INITIALIZATION
+// ==========================================
+const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE'; // Replace this!
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE'; // Replace this!
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 if (document.getElementById('deliveryForm')) {
-  const API = '../../Backend/';
   let map;
   let marker;
   let routingControl;
   let pickupCoords = null;
   let deliveryCoords = null;
-  let isAdmin = false;
-
-  const STATUSES = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Returned'];
 
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -21,13 +23,14 @@ if (document.getElementById('deliveryForm')) {
     if (fallback) fallback.hidden = false;
   }
 
+  // ==========================================
+  // 2. MAP LOGIC
+  // ==========================================
   function initMap() {
-    // Default location (Manila, Philippines)
     const defaultLocation = [14.5995, 120.9842];
 
     map = L.map('map').setView(defaultLocation, 12);
 
-    // Browsers commonly block public tile requests when this page is opened from file://.
     if (window.location.protocol === 'file:') {
       showMapFallback();
       marker = L.marker(defaultLocation, { draggable: true }).addTo(map);
@@ -47,7 +50,6 @@ if (document.getElementById('deliveryForm')) {
     marker = L.marker(defaultLocation, { draggable: true }).addTo(map);
   }
 
-  // Address search function using Nominatim (OpenStreetMap geocoding)
   async function searchAddress(address) {
     if (!address.trim()) {
       alert('Please enter an address to search');
@@ -85,7 +87,6 @@ if (document.getElementById('deliveryForm')) {
     }
   }
 
-  // Update route between pickup and delivery points
   function updateRoute() {
     if (routingControl) {
       map.removeControl(routingControl);
@@ -130,69 +131,58 @@ if (document.getElementById('deliveryForm')) {
     map.setView([14.5995, 120.9842], 12);
   }
 
+  // ==========================================
+  // 3. SUPABASE DATABASE LOGIC (Matches your schema)
+  // ==========================================
   async function loadDeliveries() {
     const deliveryList = document.getElementById('deliveryList');
-    const res = await fetch(API + 'deliveries.php');
-    const data = await res.json();
+    deliveryList.innerHTML = '<p>Loading deliveries...</p>';
 
-    if (res.status === 401) {
-      window.location.href = 'index.html';
+    const { data: deliveries, error } = await supabase
+      .from('deliveries')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading:', error);
+      deliveryList.innerHTML = `<p>Error loading deliveries.</p>`;
       return;
     }
-    if (!data.ok) {
-      deliveryList.innerHTML = `<p>${esc(data.error)}</p>`;
-      return;
-    }
 
-    isAdmin = data.isAdmin;
     deliveryList.innerHTML = '';
-    if (!data.deliveries.length) {
+    if (!deliveries || deliveries.length === 0) {
       deliveryList.innerHTML = '<p>No deliveries yet.</p>';
       return;
     }
 
-    data.deliveries.forEach(delivery => {
+    deliveries.forEach(delivery => {
       const item = document.createElement('div');
       item.className = 'delivery-item';
       item.style.cursor = 'pointer';
 
-      const statusHtml = isAdmin
-        ? `<select class="status-select">${STATUSES.map(s => `<option ${s === delivery.status ? 'selected' : ''}>${s}</option>`).join('')}</select>`
-        : esc(delivery.status);
+      // Formatting the pickup_time (since it's a timestamp column)
+      let formattedTime = '-';
+      if (delivery.pickup_time) {
+        formattedTime = new Date(delivery.pickup_time).toLocaleString();
+      }
 
       item.innerHTML = `
-        ${isAdmin && delivery.customer ? `<p><strong>Customer:</strong> ${esc(delivery.customer)}</p>` : ''}
         <p><strong>Pickup:</strong> ${esc(delivery.pickup_address)}</p>
         <p><strong>Delivery:</strong> ${esc(delivery.delivery_address)}</p>
-        <p><strong>Time:</strong> ${delivery.pickup_time ? new Date(delivery.pickup_time.replace(' ', 'T')).toLocaleString() : '-'}</p>
+        <p><strong>Time:</strong> ${formattedTime}</p>
         <p><strong>Item:</strong> ${esc(delivery.item_type || '-')}</p>
-        <p><strong>Distance:</strong> ${esc(delivery.distance_km)} km</p>
-        <p><strong>Fee:</strong> ₱${esc(delivery.fee)}</p>
-        <p><strong>Status:</strong> <span>${statusHtml}</span></p>
+        <p><strong>Distance:</strong> ${delivery.distance_km ? delivery.distance_km + ' km' : 'TBD'}</p>
+        <p><strong>Fee:</strong> ${delivery.fee ? '₱' + delivery.fee : 'TBD'}</p>
+        <p><strong>Status:</strong> <span>${esc(delivery.status)}</span></p>
         ${delivery.notes ? `<p><strong>Notes:</strong> ${esc(delivery.notes)}</p>` : ''}
       `;
 
-      // Click an entry to show its route on the map
-      item.addEventListener('click', (ev) => {
-        if (ev.target.tagName === 'SELECT') return;
+      item.addEventListener('click', () => {
         if (delivery.pickup_lat != null && delivery.delivery_lat != null) {
           pickupCoords = [delivery.pickup_lat, delivery.pickup_lng];
           deliveryCoords = [delivery.delivery_lat, delivery.delivery_lng];
           updateRoute();
-        } else {
-          alert('Route coordinates not available for this delivery.');
         }
-      });
-
-      // Admin: change status
-      item.querySelector('.status-select')?.addEventListener('change', async (ev) => {
-        const r = await fetch(API + 'deliveries.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'update_status', id: delivery.id, status: ev.target.value })
-        });
-        const out = await r.json();
-        showToast(out.ok ? 'Status updated.' : out.error);
       });
 
       deliveryList.appendChild(item);
@@ -207,35 +197,35 @@ if (document.getElementById('deliveryForm')) {
       return;
     }
 
+    // Payload mapped EXACTLY to your friend's database columns
     const payload = {
-      pickupAddress: document.getElementById('pickupAddress').value,
-      deliveryAddress: document.getElementById('deliveryAddress').value,
-      pickupTime: document.getElementById('pickupTime').value,
-      itemType: document.getElementById('itemType').value,
+      pickup_address: document.getElementById('pickupAddress').value,
+      delivery_address: document.getElementById('deliveryAddress').value,
+      pickup_time: document.getElementById('pickupTime').value,
+      item_type: document.getElementById('itemType').value,
       notes: document.getElementById('notes').value,
-      pickupCoords,
-      deliveryCoords
+      pickup_lat: pickupCoords[0],
+      pickup_lng: pickupCoords[1],
+      delivery_lat: deliveryCoords[0],
+      delivery_lng: deliveryCoords[1],
+      status: 'Pending' // Required by your NON-NULLABLE constraint
+      // user_id, distance_km, and fee are left out for now as they are nullable
     };
 
     try {
-      const res = await fetch(API + 'deliveries.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.status === 401) {
-        window.location.href = 'index.html';
-        return;
-      }
-      const data = await res.json();
-      if (!data.ok) return alert(data.error);
+      const { data, error } = await supabase
+        .from('deliveries')
+        .insert([payload]);
 
-      alert(`Delivery scheduled! Distance: ${data.distance_km} km. Delivery fee: ₱${data.fee}`);
+      if (error) throw error;
+
+      alert('Delivery scheduled successfully!');
       this.reset();
       clearRoute();
-      loadDeliveries();
+      loadDeliveries(); // Refresh the list
     } catch (err) {
-      alert('Could not reach the server.');
+      console.error('Supabase insert error:', err);
+      alert('Could not save the delivery. Check the console (F12) for details.');
     }
   });
 
