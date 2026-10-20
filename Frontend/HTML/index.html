@@ -36,7 +36,7 @@
       padding: 40px 30px;
       border-radius: 16px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-      max-width: 400px;
+      max-width: 420px;
       width: 90%;
       text-align: center;
       transform: translateY(20px) scale(0.95);
@@ -74,8 +74,22 @@
     .modal-content p {
       font-size: 15px;
       color: #666;
-      margin-bottom: 25px;
+      margin-bottom: 15px;
       line-height: 1.5;
+    }
+
+    /* Modal Feature List */
+    .modal-features {
+      text-align: left;
+      margin: 0 auto 25px auto;
+      padding-left: 20px;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .modal-features li {
+      margin-bottom: 8px;
     }
 
     /* Modal Buttons */
@@ -121,12 +135,13 @@
   <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="nav-links">
-      <a href="home.html">Home</a>
-      <a href="rental.html">Rentals</a>
-      <a href="delivery.html">Delivery</a>
+      <a href="index.html">Home</a>
+      <!-- Added require-auth class here so it triggers the modal -->
+      <a href="rental.html" class="require-auth">Rentals</a>
+      <a href="delivery.html" class="require-auth">Delivery</a>
     </div>
     <div class="nav-actions" style="display: flex; gap: 10px; align-items: center;">
-      <!-- Fixed paths to login.html -->
+      <!-- Direct paths to login/signup for users who already know they want to auth -->
       <a href="login.html" class="nav-button" style="text-decoration: none; text-align: center;">Log In</a>
       <a href="signup.html" class="nav-button" style="text-decoration: none; text-align: center; background-color: #007bff; color: white;">Sign Up</a>
     </div>
@@ -135,7 +150,6 @@
   <!-- Search Section -->
   <section class="home-search">
     <input id="homeSearchInput" type="text" placeholder="Search rentals, partners, or updates">
-    <!-- Added 'require-auth' class and removed inline onclick -->
     <button type="button" id="homeSearchBtn" class="require-auth">Search</button>
     <button type="button" class="home-search-chat require-auth">Messages</button>
   </section>
@@ -145,7 +159,6 @@
     <!-- Side Panel (Quick Actions) -->
     <aside class="side-panel">
       <h3>Quick Actions</h3>
-      <!-- Added 'require-auth' class -->
       <button type="button" class="require-auth">Post Rental</button>
       <button type="button" class="require-auth">User Messages</button>
       <button type="button" class="require-auth">Admin Support</button>
@@ -170,7 +183,6 @@
       <div class="store-suggestion-content">
         <h3>Suggested Rental Idea</h3>
         <p>Discover event-ready suits and gowns for weddings, parties, and formal occasions. Browse our most popular rental looks for your next celebration.</p>
-        <!-- Added 'require-auth' class -->
         <button type="button" class="require-auth">Browse Rentals</button>
       </div>
       <div class="suggestion-images" aria-label="Featured rental clothing">
@@ -201,7 +213,14 @@
     <div class="modal-content">
       <button class="close-modal" id="closeModal">&times;</button>
       <h2>Join StyliCycle</h2>
-      <p>You need an account to rent outfits, post listings, or send messages.</p>
+      <p>Create a free account to unlock full access to the platform:</p>
+      
+      <!-- Added Rentals and Delivery to the modal feature list -->
+      <ul class="modal-features">
+        <li><strong>Rentals:</strong> Browse and book event-ready outfits.</li>
+        <li><strong>Delivery:</strong> Schedule and track your clothing shipments.</li>
+        <li><strong>Community:</strong> Post listings, message users, and connect.</li>
+      </ul>
       
       <div class="modal-btn-group">
         <a href="login.html" class="modal-btn modal-btn-primary">Log In to Continue</a>
@@ -220,10 +239,10 @@
       const closeBtn = document.getElementById("closeModal");
       const protectedActions = document.querySelectorAll(".require-auth");
 
-      // Open modal when a protected button is clicked
-      protectedActions.forEach(button => {
-        button.addEventListener("click", (e) => {
-          e.preventDefault();
+      // Open modal when a protected button/link is clicked
+      protectedActions.forEach(element => {
+        element.addEventListener("click", (e) => {
+          e.preventDefault(); // Prevents navigating to the 404 page
           modal.classList.add("active");
         });
       });
