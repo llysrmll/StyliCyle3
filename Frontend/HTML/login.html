@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StyliCycle - Login</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body class="auth-login-page">
+  <div class="auth-shell">
+    <aside class="auth-visual" aria-label="Wedding gown showcase"></aside>
+
+    <main class="auth-panel">
+      <div class="auth-card">
+        <div class="brand-row">
+          <div class="brand-mark">K</div>
+          <div class="brand-name">StyliCycle</div>
+        </div>
+
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in to rent, list, and manage your event wardrobe.</p>
+
+        <form id="loginForm">
+          <label class="field-group">
+            <span>Email</span>
+            <input type="email" id="email" placeholder="you@example.com" required>
+          </label>
+
+          <label class="field-group">
+            <span>Password</span>
+            <input type="password" id="password" placeholder="Your password" required>
+          </label>
+
+          <input type="checkbox" id="agreeTermsLogin" class="sr-only" checked>
+
+          <button type="submit" class="primary-button">Continue</button>
+        </form>
+
+        <p class="signup-link">
+          New to StyliCycle? <a href="signup.html">Create an account</a>
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script src="../JS/auth.js"></script>
+</body>
+</html>
