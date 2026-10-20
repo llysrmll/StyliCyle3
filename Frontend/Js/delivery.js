@@ -222,6 +222,9 @@ if (document.getElementById('deliveryForm')) {
       status: 'Pending'
     };
 
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+
     try {
       const { data, error } = await supabaseClient
         .from('deliveries')
@@ -235,7 +238,10 @@ if (document.getElementById('deliveryForm')) {
       loadDeliveries(); 
     } catch (err) {
       console.error('Supabase insert error:', err);
-      alert('Could not save the delivery. Check the console (F12) for details.');
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      alert(`Could not save the delivery: ${message}`);
+    } finally {
+      submitButton.disabled = false;
     }
   });
 

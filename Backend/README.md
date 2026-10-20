@@ -21,6 +21,8 @@ stylicycle/
    (NOT Live Server on port 5500 - PHP only runs through Apache).
 5. Register, log in, add a listing with a photo, schedule a delivery.
 
+For the public Vercel delivery form, run `deliveries_rls.sql` in Supabase SQL Editor to allow anonymous delivery inserts. The policy does not grant anonymous read access. Public submission can be abused, so use authentication or rate limiting before handling sensitive production requests.
+
 ## Make an admin
 Supabase > Table Editor > users > change `role` from `customer` to `admin`, then log in again.
 Admins see every delivery and get a status dropdown on each one.
