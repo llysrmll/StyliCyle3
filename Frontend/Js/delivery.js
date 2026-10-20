@@ -1,4 +1,4 @@
-// delivery.js - Updated with variable fix
+// delivery.js - Final Fix
 
 // ==========================================
 // 1. SUPABASE INITIALIZATION
@@ -6,7 +6,6 @@
 const SUPABASE_URL = 'https://kjiyvstudiqlmegyqfpg.supabase.co'; // Replace with your actual URL
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqaXl2c3R1ZGlxbG1lZ3lxZnBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMDE5NTYsImV4cCI6MjEwNzg3Nzk1Nn0.6rizgXfBtyTrRdL7Q0sS4WKcgvmo1OdNom4957hP6Dg'; // Replace with your Publishable Key
 
-// FIX: Renamed to supabaseClient to avoid collision with the CDN global 'supabase'
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 if (document.getElementById('deliveryForm')) {
@@ -30,7 +29,6 @@ if (document.getElementById('deliveryForm')) {
   // ==========================================
   function initMap() {
     const defaultLocation = [14.5995, 120.9842];
-
     map = L.map('map').setView(defaultLocation, 12);
 
     if (window.location.protocol === 'file:') {
@@ -50,6 +48,11 @@ if (document.getElementById('deliveryForm')) {
     tileLayer.addTo(map);
 
     marker = L.marker(defaultLocation, { draggable: true }).addTo(map);
+
+    // FIX: Force map to redraw after CSS Grid finishes layout
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 500); 
   }
 
   async function searchAddress(address) {
@@ -140,7 +143,6 @@ if (document.getElementById('deliveryForm')) {
     const deliveryList = document.getElementById('deliveryList');
     deliveryList.innerHTML = '<p>Loading deliveries...</p>';
 
-    // FIX: Using supabaseClient here
     const { data: deliveries, error } = await supabaseClient
       .from('deliveries')
       .select('*')
@@ -213,7 +215,6 @@ if (document.getElementById('deliveryForm')) {
     };
 
     try {
-      // FIX: Using supabaseClient here
       const { data, error } = await supabaseClient
         .from('deliveries')
         .insert([payload]);

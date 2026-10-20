@@ -8,6 +8,5 @@
       "source": "/:path*.html",
       "destination": "/HTML/:path*.html"
     }
-  ],
-  "trailingSlash": true
+  ]
 }

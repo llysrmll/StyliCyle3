@@ -4,28 +4,27 @@
   <meta charset="UTF-8">
   <title>StyliCycle - Clothing Delivery</title>
   
-  <!-- FIXED: Absolute paths for CSS -->
+  <!-- CSS (Absolute paths) -->
   <link rel="stylesheet" href="/CSS/style.css">
-  
-  <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
   
-  <!-- Leaflet Map Scripts -->
+  <!-- Map Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
-  <!-- Supabase CDN -->
+  <!-- Supabase Script -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    /* Added a hard height and background color to prove the map container exists */
     #map {
       position: relative;
-      height: 100%;
-      min-height: 520px;
+      height: 520px; 
       width: 100%;
       overflow: hidden;
       border-radius: 12px;
+      background-color: #e5e3df; /* Gray background if tiles fail */
     }
     .delivery-form {
       background: #ffffff;
@@ -34,148 +33,57 @@
       box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
       margin-bottom: 0;
     }
-    .delivery-form h3 {
-      margin-top: 0;
-    }
+    .delivery-form h3 { margin-top: 0; }
     .delivery-form input, .delivery-form select, .delivery-form textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;
     }
     .delivery-form button {
-      background: #5d204c;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
+      background: #5d204c; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;
     }
-    .delivery-form button:hover {
-      background: #432b38;
-    }
+    .delivery-form button:hover { background: #432b38; }
     .delivery-list {
-      background: #ffffff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
+      background: #ffffff; padding: 24px; border-radius: 12px; box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
     }
     .delivery-item {
-      border: 1px solid rgba(95, 36, 73, 0.1);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin: 12px 0;
-      transition: background-color 0.3s ease;
+      border: 1px solid rgba(95, 36, 73, 0.1); border-radius: 12px; padding: 14px 16px; margin: 12px 0; transition: background-color 0.3s ease;
     }
-    .delivery-item:hover {
-      background-color: #faf6f0;
-    }
-    .delivery-item:last-child {
-      border-bottom: 1px solid rgba(95, 36, 73, 0.1);
-    }
+    .delivery-item:hover { background-color: #faf6f0; }
+    .delivery-item:last-child { border-bottom: 1px solid rgba(95, 36, 73, 0.1); }
     .search-btn {
-      background: #5d204c;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-left: 10px;
+      background: #5d204c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 10px;
     }
-    .search-btn:hover {
-      background: #432b38;
-    }
+    .search-btn:hover { background: #432b38; }
     .delivery-layout {
       grid-template-columns: minmax(260px, 0.75fr) minmax(360px, 1fr) minmax(260px, 0.75fr);
-      align-items: stretch;
-      margin: 20px 32px 48px;
+      align-items: stretch; margin: 20px 32px 48px;
     }
-    .delivery-layout > section {
-      min-width: 0;
-      height: 100%;
-    }
+    .delivery-layout > section { min-width: 0; height: 100%; }
     .delivery-map-panel {
-      min-width: 0;
-      padding: 24px;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
+      min-width: 0; padding: 24px; background: #ffffff; border-radius: 12px; box-shadow: 0 12px 28px rgba(43, 33, 41, 0.07);
     }
-    .delivery-panel-heading {
-      margin-bottom: 16px;
-    }
-    .delivery-panel-heading h3 {
-      margin: 0 0 4px;
-    }
-    .delivery-panel-heading span {
-      color: #6b5c64;
-      font-size: 0.88rem;
-    }
+    .delivery-panel-heading { margin-bottom: 16px; }
+    .delivery-panel-heading h3 { margin: 0 0 4px; }
+    .delivery-panel-heading span { color: #6b5c64; font-size: 0.88rem; }
     .delivery-item p {
-      display: grid;
-      grid-template-columns: 82px 1fr;
-      gap: 8px;
-      margin: 6px 0;
-      color: #6b5c64;
-      line-height: 1.45;
+      display: grid; grid-template-columns: 82px 1fr; gap: 8px; margin: 6px 0; color: #6b5c64; line-height: 1.45;
     }
-    .delivery-item strong {
-      color: #432b38;
-    }
+    .delivery-item strong { color: #432b38; }
     .map-fallback {
-      position: absolute;
-      inset: 0;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 24px;
-      text-align: center;
-      color: #432b38;
-      background: linear-gradient(135deg, #f3e8df, #e4cfa0);
+      position: absolute; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; text-align: center; color: #432b38; background: linear-gradient(135deg, #f3e8df, #e4cfa0);
     }
-    .map-fallback[hidden] {
-      display: none;
-    }
-    .map-fallback span {
-      max-width: 260px;
-      color: #6b5c64;
-      font-size: 0.9rem;
-    }
+    .map-fallback[hidden] { display: none; }
+    .map-fallback span { max-width: 260px; color: #6b5c64; font-size: 0.9rem; }
+    
     @media (max-width: 1100px) {
-      .delivery-layout {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .delivery-map-panel {
-        grid-column: 1 / -1;
-        grid-row: 1;
-      }
-      .delivery-form {
-        grid-column: 1;
-        grid-row: 2;
-      }
-      .delivery-list {
-        grid-column: 2;
-        grid-row: 2;
-      }
+      .delivery-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .delivery-map-panel { grid-column: 1 / -1; grid-row: 1; }
+      .delivery-form { grid-column: 1; grid-row: 2; }
+      .delivery-list { grid-column: 2; grid-row: 2; }
     }
     @media (max-width: 700px) {
-      .delivery-layout {
-        grid-template-columns: 1fr;
-        margin: 16px;
-      }
-      .delivery-map-panel,
-      .delivery-form,
-      .delivery-list {
-        grid-column: 1;
-        grid-row: auto;
-      }
-      #map {
-        min-height: 360px;
-      }
+      .delivery-layout { grid-template-columns: 1fr; margin: 16px; }
+      .delivery-map-panel, .delivery-form, .delivery-list { grid-column: 1; grid-row: auto; }
+      #map { height: 360px; }
     }
   </style>
 </head>
@@ -247,7 +155,7 @@
     </section>
   </main>
   
-  <!-- FIXED: Absolute paths for JS -->
+  <!-- JS (Absolute paths) -->
   <script src="/JS/common.js"></script>
   <script src="/JS/delivery.js"></script>
 </body>
