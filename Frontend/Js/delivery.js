@@ -3,8 +3,8 @@
 // ==========================================
 // 1. SUPABASE INITIALIZATION
 // ==========================================
-const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE'; // Replace this!
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE'; // Replace this!
+const SUPABASE_URL = 'https://kjiyvstudiqlmegyqfpg.supabase.co'; // Replace this!
+const SUPABASE_ANON_KEY = 'sb_publishable_SVbMwppVGBSAZGanWksG1Q_H2O67fGy'; // Replace this!
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 if (document.getElementById('deliveryForm')) {
