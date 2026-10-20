@@ -4,6 +4,118 @@
   <meta charset="UTF-8">
   <title>StyliCycle - Home</title>
   <link rel="stylesheet" href="../CSS/style.css">
+  
+  <!-- Extra styles specifically for the modal -->
+  <style>
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(5px); /* Modern glass effect */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Modal Content Box */
+    .modal-content {
+      background: #ffffff;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0) scale(1);
+    }
+
+    /* Close Button */
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #888;
+      background: none;
+      border: none;
+      transition: color 0.2s;
+    }
+
+    .close-modal:hover {
+      color: #333;
+    }
+
+    .modal-content h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #111;
+    }
+
+    .modal-content p {
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    /* Modal Buttons */
+    .modal-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-btn {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .modal-btn:active {
+      transform: scale(0.98);
+    }
+
+    .modal-btn-primary {
+      background-color: #007bff; /* Blue */
+      color: white;
+    }
+
+    .modal-btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .modal-btn-secondary {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    .modal-btn-secondary:hover {
+      background-color: #e4e4e4;
+    }
+  </style>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -14,8 +126,8 @@
       <a href="delivery.html">Delivery</a>
     </div>
     <div class="nav-actions" style="display: flex; gap: 10px; align-items: center;">
-      <!-- Guest Actions: Login & Signup -->
-      <a href="index.html" class="nav-button" style="text-decoration: none; text-align: center;">Log In</a>
+      <!-- Fixed paths to login.html -->
+      <a href="login.html" class="nav-button" style="text-decoration: none; text-align: center;">Log In</a>
       <a href="signup.html" class="nav-button" style="text-decoration: none; text-align: center; background-color: #007bff; color: white;">Sign Up</a>
     </div>
   </nav>
@@ -23,10 +135,9 @@
   <!-- Search Section -->
   <section class="home-search">
     <input id="homeSearchInput" type="text" placeholder="Search rentals, partners, or updates">
-    <!-- Redirect to login on search -->
-    <button type="button" id="homeSearchBtn" onclick="location.href='index.html'">Search</button>
-    <!-- Redirect to login for messages -->
-    <button type="button" class="home-search-chat" onclick="location.href='index.html'">Messages</button>
+    <!-- Added 'require-auth' class and removed inline onclick -->
+    <button type="button" id="homeSearchBtn" class="require-auth">Search</button>
+    <button type="button" class="home-search-chat require-auth">Messages</button>
   </section>
 
   <!-- Main Dashboard -->
@@ -34,17 +145,17 @@
     <!-- Side Panel (Quick Actions) -->
     <aside class="side-panel">
       <h3>Quick Actions</h3>
-      <!-- All quick actions redirect to login -->
-      <button type="button" onclick="location.href='index.html'">Post Rental</button>
-      <button type="button" onclick="location.href='index.html'">User Messages</button>
-      <button type="button" onclick="location.href='index.html'">Admin Support</button>
-      <button type="button" onclick="location.href='index.html'">View Notifications</button>
+      <!-- Added 'require-auth' class -->
+      <button type="button" class="require-auth">Post Rental</button>
+      <button type="button" class="require-auth">User Messages</button>
+      <button type="button" class="require-auth">Admin Support</button>
+      <button type="button" class="require-auth">View Notifications</button>
       
       <!-- Replaced Create Post area with a login prompt -->
       <div class="create-post" style="text-align: center; padding: 20px 0;">
         <h4>Create a Post</h4>
         <p style="margin-bottom: 15px; font-size: 14px; color: #666;">You need to be logged in to share your thoughts or updates.</p>
-        <button type="button" onclick="location.href='index.html'" style="width: 100%;">Log In to Post</button>
+        <button type="button" class="require-auth" style="width: 100%;">Log In to Post</button>
       </div>
 
       <!-- Replaced notification list with a prompt -->
@@ -59,8 +170,8 @@
       <div class="store-suggestion-content">
         <h3>Suggested Rental Idea</h3>
         <p>Discover event-ready suits and gowns for weddings, parties, and formal occasions. Browse our most popular rental looks for your next celebration.</p>
-        <!-- Redirect to login when trying to browse/rent -->
-        <button type="button" onclick="location.href='index.html'">Browse Rentals</button>
+        <!-- Added 'require-auth' class -->
+        <button type="button" class="require-auth">Browse Rentals</button>
       </div>
       <div class="suggestion-images" aria-label="Featured rental clothing">
         <article class="suggestion-card">
@@ -83,7 +194,59 @@
     </section>
   </main>
 
+  <!-- ========================================== -->
+  <!-- THE NEW AUTH MODAL POPUP -->
+  <!-- ========================================== -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-modal" id="closeModal">&times;</button>
+      <h2>Join StyliCycle</h2>
+      <p>You need an account to rent outfits, post listings, or send messages.</p>
+      
+      <div class="modal-btn-group">
+        <a href="login.html" class="modal-btn modal-btn-primary">Log In to Continue</a>
+        <a href="signup.html" class="modal-btn modal-btn-secondary">Create a New Account</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="../JS/common.js"></script>
-  <!-- Removed home.js since a guest shouldn't be running authenticated scripts -->
+  
+  <!-- Modal Logic -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const modal = document.getElementById("authModal");
+      const closeBtn = document.getElementById("closeModal");
+      const protectedActions = document.querySelectorAll(".require-auth");
+
+      // Open modal when a protected button is clicked
+      protectedActions.forEach(button => {
+        button.addEventListener("click", (e) => {
+          e.preventDefault();
+          modal.classList.add("active");
+        });
+      });
+
+      // Close modal on "X" click
+      closeBtn.addEventListener("click", () => {
+        modal.classList.remove("active");
+      });
+
+      // Close modal when clicking outside the white box
+      window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.classList.remove("active");
+        }
+      });
+      
+      // Allow closing with the Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("active")) {
+          modal.classList.remove("active");
+        }
+      });
+    });
+  </script>
 </body>
 </html>
