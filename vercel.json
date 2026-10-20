@@ -2,7 +2,8 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/HTML/home.html"
+      "destination": "/HTML/index.html"
     }
-  ]
+  ],
+  "trailingSlash": true
 }
