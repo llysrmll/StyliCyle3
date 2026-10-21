@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - StyliCycle</title>
+  <link rel="stylesheet" href="/CSS/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="admin-brand">StyliCycle<span>Admin portal</span></div>
+      <nav class="admin-nav" aria-label="Admin navigation">
+        <a class="active" href="/HTML/admin.html">Dashboard</a>
+        <a href="/HTML/admin_rentals.html">Manage Rentals</a>
+        <a href="/HTML/admin_deliveries.html">Manage Deliveries</a>
+        <a href="/HTML/admin_chat.html">User Messages</a>
+        <button class="admin-logout" id="adminLogoutButton" type="button">Logout</button>
+      </nav>
+    </aside>
+    <main class="admin-main">
+      <h1 class="admin-heading">Dashboard</h1>
+      <p class="admin-subtitle">Overview of StyliCycle activity.</p>
+      <section class="admin-cards" aria-label="Platform summary">
+        <article class="admin-card">
+          <span class="admin-card-label">Total Users</span>
+          <strong class="admin-card-value" id="totalUsersCount">—</strong>
+        </article>
+        <article class="admin-card">
+          <span class="admin-card-label">Active Rentals</span>
+          <strong class="admin-card-value" id="activeRentalsCount">—</strong>
+        </article>
+        <article class="admin-card">
+          <span class="admin-card-label">Pending Deliveries</span>
+          <strong class="admin-card-value" id="pendingDeliveriesCount">—</strong>
+        </article>
+      </section>
+      <p id="adminDashboardStatus" class="admin-status" role="status" aria-live="polite"></p>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/admin-common.js"></script>
+  <script src="/Js/admin.js"></script>
+</body>
+</html>

@@ -24,7 +24,11 @@ to authenticated
 using (
   sender_id = (select auth.uid())
   or receiver_id = (select auth.uid())::text
-  or receiver_id = 'admin'
+  or (
+    receiver_id = 'admin'
+    and (select auth.jwt() -> 'app_metadata' ->> 'is_admin') = 'true'
+  )
+  or (select auth.jwt() -> 'app_metadata' ->> 'is_admin') = 'true'
 );
 
 drop policy if exists "Users can send messages as themselves" on public.messages;

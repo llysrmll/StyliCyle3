@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Rentals - StyliCycle Admin</title>
+  <link rel="stylesheet" href="/CSS/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="admin-brand">StyliCycle<span>Admin portal</span></div>
+      <nav class="admin-nav" aria-label="Admin navigation">
+        <a href="/HTML/admin.html">Dashboard</a>
+        <a class="active" href="/HTML/admin_rentals.html">Manage Rentals</a>
+        <a href="/HTML/admin_deliveries.html">Manage Deliveries</a>
+        <a href="/HTML/admin_chat.html">User Messages</a>
+        <button class="admin-logout" id="adminLogoutButton" type="button">Logout</button>
+      </nav>
+    </aside>
+    <main class="admin-main">
+      <h1 class="admin-heading">Manage Rentals</h1>
+      <p class="admin-subtitle">Rental listings currently stored in the platform.</p>
+      <p id="adminRentalsStatus" class="admin-status" role="status" aria-live="polite">Checking administrator access...</p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Price / day</th><th>Size</th><th>Status</th><th>Created</th></tr></thead>
+          <tbody id="adminRentalsBody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/admin-common.js"></script>
+  <script src="/Js/admin_rentals.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal - StyliCycle</title>
+  <link rel="stylesheet" href="/CSS/admin.css">
+</head>
+<body class="admin-login-page">
+  <main class="admin-login-card">
+    <div class="admin-brand">StyliCycle<span>Administrator access</span></div>
+    <span class="admin-portal-badge">Admin Portal</span>
+    <h1>Sign in</h1>
+    <p>Use an administrator account to manage StyliCycle.</p>
+    <form id="adminLoginForm" class="admin-login-form">
+      <label for="adminEmail">Email</label>
+      <input type="email" id="adminEmail" autocomplete="username" required>
+      <label for="adminPassword">Password</label>
+      <input type="password" id="adminPassword" autocomplete="current-password" required>
+      <button class="admin-login-button" type="submit">Continue to Admin</button>
+    </form>
+    <p id="adminLoginStatus" class="admin-login-status" role="status" aria-live="polite"></p>
+    <a class="admin-back-link" href="/HTML/login.html">Back to user login</a>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/admin_auth.js"></script>
+</body>
+</html>

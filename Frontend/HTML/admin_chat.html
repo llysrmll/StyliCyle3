@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Messages - StyliCycle Admin</title>
+  <link rel="stylesheet" href="/CSS/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="admin-brand">StyliCycle<span>Admin portal</span></div>
+      <nav class="admin-nav" aria-label="Admin navigation">
+        <a href="/HTML/admin.html">Dashboard</a>
+        <a href="/HTML/admin_rentals.html">Manage Rentals</a>
+        <a href="/HTML/admin_deliveries.html">Manage Deliveries</a>
+        <a class="active" href="/HTML/admin_chat.html">User Messages</a>
+        <button class="admin-logout" id="adminLogoutButton" type="button">Logout</button>
+      </nav>
+    </aside>
+    <main class="admin-main">
+      <h1 class="admin-heading">User Messages</h1>
+      <p class="admin-subtitle">Choose a user to view and reply to their messages.</p>
+      <div class="admin-chat-layout">
+        <aside class="admin-panel admin-contacts">
+          <h2>Conversations</h2>
+          <p id="adminContactsStatus" class="admin-status" role="status" aria-live="polite"></p>
+          <div id="adminChatContacts" class="admin-contact-list"></div>
+        </aside>
+        <section class="admin-panel admin-conversation" aria-label="Selected conversation">
+          <div id="adminChatWindow" class="admin-chat-window" aria-live="polite" aria-relevant="additions text"></div>
+          <p id="adminChatStatus" class="admin-status" role="status" aria-live="polite"></p>
+          <form id="adminReplyForm" class="admin-reply-form">
+            <input id="adminReplyInput" type="text" maxlength="5000" placeholder="Write a reply..." aria-label="Reply message" required>
+            <button type="submit">Send</button>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/admin-common.js"></script>
+  <script src="/Js/admin_chat.js"></script>
+</body>
+</html>

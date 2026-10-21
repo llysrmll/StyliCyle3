@@ -27,10 +27,23 @@ Supabase may temporarily reject signup confirmation emails with HTTP 429 (`email
 
 Run `deliveries_rls.sql` in Supabase SQL Editor to enable authenticated delivery inserts and per-user reads.
 
-Run `messages.sql` in Supabase SQL Editor to create the chat table, enable RLS, and add the table to Supabase Realtime. The temporary `receiver_id = 'admin'` read policy is shared with all authenticated users for testing; remove that condition before using private admin conversations with real users.
+Run `messages.sql` in Supabase SQL Editor to create the chat table, enable RLS, and add the table to Supabase Realtime. Users can read their own conversations; only admins can read all messages addressed to `admin`.
+
+Run `auth_profiles.sql`, `deliveries_rls.sql`, and then `admin_setup.sql` in Supabase SQL Editor to prepare profile lookups, delivery management, admin rental reads, and dashboard counts.
+
+Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
+
+```sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
+  || '{"is_admin": true, "role": "admin"}'::jsonb
+where email = lower('admin@example.com');
+```
+
+The admin pages check `app_metadata` (not user-editable `user_metadata`) and Supabase RLS checks the same claim. Sign out and back in after promotion so the new claim is included in the session. Never expose a service-role key in frontend code.
 
 ## Legacy PHP endpoints
 
 Vercel does not execute the PHP files in `Backend/`. Those endpoints also use PHP sessions, which are separate from Supabase Auth sessions. The current Vercel frontend does not use the PHP login/register endpoints, and PHP listing APIs need a PHP-capable host plus an auth bridge or migration before they can be used with this Supabase session.
 
-Changing `public.users.role` does not grant a Supabase Auth role. Do not use client-editable user metadata to authorize privileged actions.
+Changing `public.users.role` does not grant a Supabase Auth role.
