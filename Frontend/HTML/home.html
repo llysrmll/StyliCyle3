@@ -22,11 +22,11 @@
       <button type="button" class="nav-button" id="navNotificationBtn">Notifications</button>
     </div>
   </nav>
-  <section class="home-search">
-    <input id="homeSearchInput" type="text" placeholder="Search rentals by title or category">
-    <button type="button" id="homeSearchBtn">Search</button>
+  <form class="home-search" id="homeRentalSearchForm" role="search">
+    <input id="homeSearchInput" type="search" placeholder="Search rentals by title or category" aria-label="Search rentals">
+    <button type="submit" id="homeSearchBtn">Search</button>
     <button type="button" class="home-search-chat" onclick="location.href='chatbox.html'">Messages</button>
-  </section>
+  </form>
   <main class="dashboard home-grid">
     <aside class="side-panel">
       <h3>Quick Actions</h3>

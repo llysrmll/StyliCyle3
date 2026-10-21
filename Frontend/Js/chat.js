@@ -13,13 +13,20 @@ const requestedReceiver = chatParams.get("receiver_id") || chatParams.get("partn
 const requestedOwnerId = chatParams.get("partner_id") || "";
 const requestedName = chatParams.get("name") || "";
 const itemTitle = chatParams.get("item") || "";
+const itemId = chatParams.get("item_id") || "";
+const itemPrice = chatParams.get("item_price") || "";
+const itemCategory = chatParams.get("item_category") || "";
 const isAdminChatPage = document.body.classList.contains("admin-message-page");
+const shareItemButton = document.getElementById("shareItemButton");
 
 let currentUserId = null;
 let currentReceiver = isAdminChatPage ? "admin" : requestedReceiver;
 let currentContactName = requestedName;
 let listingReceiver = requestedReceiver;
 let currentItemTitle = itemTitle;
+let currentItemId = itemId;
+let currentItemPrice = itemPrice;
+let currentItemCategory = itemCategory;
 let realtimeChannel = null;
 let loadSequence = 0;
 const currentMessages = new Map();
@@ -234,6 +241,12 @@ async function selectContact(contact) {
   currentContactName = contact.name;
   currentReceiver = contact.id;
   currentItemTitle = contact.id === listingReceiver ? itemTitle : "";
+  currentItemId = contact.id === listingReceiver ? itemId : "";
+  currentItemPrice = contact.id === listingReceiver ? itemPrice : "";
+  currentItemCategory = contact.id === listingReceiver ? itemCategory : "";
+  if (shareItemButton) {
+    shareItemButton.hidden = !currentItemId || !/^\d+$/.test(currentItemId) || contact.id === "admin";
+  }
   updateHeader(contact.name, contact.id === "admin" ? "StyliCycle Support" : "Vendor");
   renderContacts();
   const params = new URLSearchParams(window.location.search);
@@ -242,6 +255,12 @@ async function selectContact(contact) {
   params.set("name", contact.name);
   if (currentItemTitle) params.set("item", currentItemTitle);
   else params.delete("item");
+  if (currentItemId) params.set("item_id", currentItemId);
+  else params.delete("item_id");
+  if (currentItemPrice) params.set("item_price", currentItemPrice);
+  else params.delete("item_price");
+  if (currentItemCategory) params.set("item_category", currentItemCategory);
+  else params.delete("item_category");
   window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
   await loadMessages(contact.id);
 }
@@ -278,6 +297,15 @@ async function initializeChat() {
     throw new Error("The requested chat partner ID is invalid.");
   } else if (isUuid(requestedReceiver)) {
     listingReceiver = requestedReceiver;
+  }
+
+  if (shareItemButton) {
+    shareItemButton.hidden = !(
+      currentItemId &&
+      /^\d+$/.test(currentItemId) &&
+      isUuid(currentReceiver) &&
+      currentReceiver !== currentUserId
+    );
   }
 
   if (currentReceiver === "admin") {
@@ -319,6 +347,37 @@ async function initializeChat() {
     });
 
   await loadMessages(currentReceiver);
+
+  shareItemButton?.addEventListener("click", async () => {
+    if (!currentItemId || !/^\d+$/.test(currentItemId) ||
+        !isUuid(currentReceiver) || currentReceiver === currentUserId) {
+      setChatStatus("Select the vendor for the item you want to share.");
+      return;
+    }
+    shareItemButton.disabled = true;
+    try {
+      const itemMessage = [
+        "I'm interested in this listing:",
+        currentItemTitle || "Rental item",
+        `Listing ID: ${currentItemId}`,
+        currentItemCategory ? `Category: ${currentItemCategory}` : "",
+        currentItemPrice ? `Price per day: ₱${currentItemPrice}` : ""
+      ].filter(Boolean).join("\n");
+      const { data: insertedMessage, error: insertError } = await chatClient
+        .from("messages")
+        .insert({ sender_id: currentUserId, receiver_id: currentReceiver, content: itemMessage })
+        .select("id, sender_id, receiver_id, content, created_at")
+        .single();
+      if (insertError) throw insertError;
+      addMessage(insertedMessage);
+      setChatStatus("Listing sent to the vendor.");
+      await loadContacts();
+    } catch (error) {
+      setChatStatus(`Could not send the listing: ${error.message || String(error)}`);
+    } finally {
+      shareItemButton.disabled = false;
+    }
+  });
 
   chatForm.addEventListener("submit", async (event) => {
     event.preventDefault();

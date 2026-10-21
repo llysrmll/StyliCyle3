@@ -109,6 +109,12 @@ as $function$
   from public.users as public_user
   where public_user.id = p_owner_id
     and auth.uid() is not null
+    and exists (
+      select 1
+      from public.items as item
+      where item.owner_id = public_user.id
+        and item.status = 'available'
+    )
   limit 1
 $function$;
 

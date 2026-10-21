@@ -5,7 +5,6 @@ const listingsStatus = document.getElementById("rentalListingsStatus");
 const rentalForm = document.getElementById("rentalForm");
 const searchTerm = new URLSearchParams(window.location.search).get("search")?.trim() || "";
 let currentPublicUserId = null;
-let currentAuthUserId = null;
 let showingSearchResults = Boolean(searchTerm);
 
 function setListingsStatus(message) {
@@ -16,14 +15,17 @@ function renderListings(items) {
   listingsElement.replaceChildren();
   for (const item of items) {
     const listItem = document.createElement("li");
-    const canMessageVendor = item.vendor_auth_id && item.vendor_auth_id !== currentAuthUserId;
+    const canMessageVendor = item.owner_id && item.owner_id !== currentPublicUserId;
     const card = document.createElement(canMessageVendor ? "a" : "article");
     card.className = "listing-card listing-card-clickable";
     if (canMessageVendor) {
       const params = new URLSearchParams({
-        receiver_id: item.vendor_auth_id,
+        partner_id: String(item.owner_id),
         name: item.vendor_name || "Vendor",
-        item: item.title || ""
+        item: item.title || "",
+        item_id: String(item.id),
+        item_price: String(item.price_per_day ?? ""),
+        item_category: item.category || ""
       });
       card.href = `/HTML/chatbox.html?${params.toString()}`;
       card.setAttribute("aria-label", `Message ${item.vendor_name || "the vendor"} about ${item.title || "this listing"}`);
@@ -223,7 +225,6 @@ async function initializeRentals() {
   }
 
   currentPublicUserId = await getPublicUserId();
-  currentAuthUserId = data.user.id;
   await refreshListings();
 }
 

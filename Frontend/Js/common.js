@@ -221,11 +221,19 @@ function goToRentalSearch() {
   window.location.href = `/HTML/rental.html?search=${encodeURIComponent(query)}`;
 }
 
-document.getElementById("homeSearchBtn")?.addEventListener("click", goToRentalSearch);
+const homeRentalSearchForm = document.getElementById("homeRentalSearchForm");
+homeRentalSearchForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  goToRentalSearch();
+});
+
+if (!homeRentalSearchForm) {
+  document.getElementById("homeSearchBtn")?.addEventListener("click", goToRentalSearch);
+}
 document.getElementById("homeSearchInput")?.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
-    goToRentalSearch();
+    if (!homeRentalSearchForm) goToRentalSearch();
   }
 });
 

@@ -427,6 +427,31 @@ h1 {
   gap: 12px;
 }
 
+.chat-form #shareItemButton {
+  width: auto;
+  height: auto;
+  display: block;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(95, 36, 73, 0.22);
+  border-radius: 999px;
+  background: #fff;
+  color: #5f2449;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.chat-form #shareItemButton[hidden] {
+  display: none;
+}
+
+.chat-form #shareItemButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .nav-chat-input {
   display: flex;
   align-items: center;
