@@ -4,9 +4,12 @@ const conversationWindow = document.getElementById("adminChatWindow");
 const replyForm = document.getElementById("adminReplyForm");
 const replyInput = document.getElementById("adminReplyInput");
 const chatStatus = document.getElementById("adminChatStatus");
+const userSearchForm = document.getElementById("adminUserSearchForm");
+const userSearchInput = document.getElementById("adminUserSearchInput");
 let adminUserId = null;
 let selectedUserId = null;
 let contactDetails = new Map();
+let conversationUserIds = new Set();
 let conversationMessages = new Map();
 let adminChatChannel = null;
 let conversationLoad = 0;
@@ -23,7 +26,20 @@ function renderAdminContacts() {
     button.className = `admin-contact${selectedUserId === userId ? " active" : ""}`;
     button.setAttribute("aria-pressed", String(selectedUserId === userId));
     const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || userId;
-    button.textContent = name;
+    const userLabel = document.createElement("span");
+    userLabel.textContent = name;
+    button.appendChild(userLabel);
+    if (profile.email) {
+      const email = document.createElement("small");
+      email.textContent = profile.email;
+      button.appendChild(email);
+    }
+    if (conversationUserIds.has(userId)) {
+      const conversationLabel = document.createElement("small");
+      conversationLabel.className = "admin-contact-meta";
+      conversationLabel.textContent = "Conversation";
+      button.appendChild(conversationLabel);
+    }
     button.title = profile.email || userId;
     button.addEventListener("click", () => {
       openConversation(userId).catch((error) => {
@@ -61,10 +77,11 @@ async function loadAdminContacts() {
   if (error) throw new Error(`Could not load message contacts: ${error.message}`);
 
   const userIds = [...new Set((messages || []).map((message) => message.sender_id).filter((id) => id !== adminUserId))];
+  conversationUserIds = new Set(userIds);
   if (!userIds.length) {
-    contactDetails = new Map();
+    contactDetails = new Map([...contactDetails].filter(([id]) => !conversationUserIds.has(id)));
     renderAdminContacts();
-    contactsStatus.textContent = "No users have messaged admin yet.";
+    contactsStatus.textContent = "No users have messaged admin yet. Search to start a conversation.";
     return;
   }
 
@@ -75,12 +92,32 @@ async function loadAdminContacts() {
   if (profileError) throw new Error(`Could not load user details: ${profileError.message}`);
 
   const profilesById = new Map((profiles || []).map((profile) => [profile.id, profile]));
-  contactDetails = new Map(userIds.map((id) => [id, profilesById.get(id) || { id }]));
+  for (const id of userIds) {
+    contactDetails.set(id, profilesById.get(id) || { id });
+  }
   contactsStatus.textContent = "";
   renderAdminContacts();
   if (!selectedUserId || !contactDetails.has(selectedUserId)) {
     await openConversation(userIds[0]);
   }
+}
+
+async function searchAdminUsers(query) {
+  contactsStatus.textContent = "Searching users...";
+  const { data, error } = await window.adminClient.rpc("admin_search_users", {
+    p_query: query
+  });
+  if (error) throw new Error(`Could not search users: ${error.message}`);
+
+  contactDetails = new Map((data || []).map((user) => [user.id, user]));
+  if (!contactDetails.size) {
+    renderAdminContacts();
+    contactsStatus.textContent = "No users found. Try another name or email.";
+    return;
+  }
+
+  renderAdminContacts();
+  contactsStatus.textContent = `${contactDetails.size} user(s) found. Select one to open or start a conversation.`;
 }
 
 async function openConversation(userId) {
@@ -165,6 +202,24 @@ async function initializeAdminChat() {
   const user = await window.requireAdmin();
   if (!user) return;
   adminUserId = user.id;
+
+  userSearchForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = userSearchForm.querySelector('button[type="submit"]');
+    button.disabled = true;
+    try {
+      await searchAdminUsers(userSearchInput.value.trim());
+    } catch (error) {
+      contactsStatus.textContent = error.message || String(error);
+    } finally {
+      button.disabled = false;
+    }
+  });
+  document.getElementById("adminShowConversationsButton").addEventListener("click", () => {
+    loadAdminContacts().catch((error) => {
+      contactsStatus.textContent = error.message || String(error);
+    });
+  });
 
   replyForm.addEventListener("submit", async (event) => {
     event.preventDefault();

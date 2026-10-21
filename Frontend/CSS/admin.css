@@ -40,7 +40,17 @@ a { color: inherit; text-decoration: none; }
 .admin-contacts { padding: 14px; }
 .admin-contact-list { display: grid; gap: 7px; }
 .admin-contact { padding: 12px; border: 0; border-radius: 9px; background: transparent; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.admin-contact > span, .admin-contact > small { display: block; }
+.admin-contact > small { margin-top: 5px; color: #766d74; font-size: .78rem; }
+.admin-contact .admin-contact-meta { color: #7c4565; font-weight: 700; }
 .admin-contact:hover, .admin-contact.active { background: #f2e8ef; color: #542b46; }
+.admin-user-search { display: grid; gap: 8px; margin-bottom: 10px; }
+.admin-user-search input { width: 100%; min-width: 0; padding: 10px; border: 1px solid #ddd3d9; border-radius: 8px; }
+.admin-user-search button, .admin-show-conversations { min-height: 38px; padding: 8px 10px; border: 1px solid #d9cbd4; border-radius: 8px; background: #fff; color: #542b46; font-weight: 650; cursor: pointer; }
+.admin-user-search button:hover, .admin-show-conversations:hover { background: #f2e8ef; }
+.admin-user-search button:disabled { cursor: wait; opacity: .65; }
+.admin-show-conversations { width: 100%; margin-bottom: 8px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 .admin-conversation { display: flex; flex-direction: column; min-height: 65vh; overflow: hidden; }
 .admin-chat-window { flex: 1; min-height: 350px; display: flex; flex-direction: column; gap: 12px; padding: 20px; overflow-y: auto; background: #f4f6f9; }
 .admin-chat-window .message { max-width: 78%; padding: 12px 15px; border-radius: 15px; overflow-wrap: anywhere; }

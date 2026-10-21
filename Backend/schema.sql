@@ -56,7 +56,7 @@ create table deliveries (
 
 -- Sample listings so the Rentals page is not empty on demo day
 insert into items (title, category, price_per_day, size, description, image_path) values
-('Evening Gown',  'Formalwear', 650,  'M', 'Perfect for formal events.',  'Frontend/Images/evening.jpg'),
-('Tuxedo Suit',   'Formalwear', 850,  'L', 'Classic suit for weddings.',  'Frontend/Images/tuxedo.jpg'),
-('Bridal Gown',   'Bridal',     1200, 'S', 'Elegant wedding dress.',      'Frontend/Images/bridal.jpg'),
-('Tan Suit',      'Formalwear', 750,  'M', 'Smart tan suit for events.',  'Frontend/Images/gold.jpg');
+('Evening Gown',  'Formalwear', 650,  'M', 'Perfect for formal events.',  '/Images/evening.jpg'),
+('Tuxedo Suit',   'Formalwear', 850,  'L', 'Classic suit for weddings.',  '/Images/tuxedo.jpg'),
+('Bridal Gown',   'Bridal',     1200, 'S', 'Elegant wedding dress.',      '/Images/bridal.jpg'),
+('Tan Suit',      'Formalwear', 750,  'M', 'Smart tan suit for events.',  '/Images/gold.jpg');

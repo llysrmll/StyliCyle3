@@ -24,6 +24,12 @@
       <div class="admin-chat-layout">
         <aside class="admin-panel admin-contacts">
           <h2>Conversations</h2>
+          <form id="adminUserSearchForm" class="admin-user-search">
+            <label class="visually-hidden" for="adminUserSearchInput">Find a user by name or email</label>
+            <input id="adminUserSearchInput" type="search" maxlength="160" placeholder="Find user by name or email">
+            <button type="submit">Find</button>
+          </form>
+          <button id="adminShowConversationsButton" class="admin-show-conversations" type="button">Show conversations</button>
           <p id="adminContactsStatus" class="admin-status" role="status" aria-live="polite"></p>
           <div id="adminChatContacts" class="admin-contact-list"></div>
         </aside>

@@ -42,6 +42,8 @@ For an existing Vercel/Supabase database, run these scripts in the Supabase SQL 
 3. `deliveries_rls.sql`
 4. `admin_setup.sql`
 5. `app_features.sql`
+6. `profile_setup.sql` (if using vendor profiles)
+7. `admin_chat_setup.sql` (if using the searchable admin inbox)
 
 `app_features.sql` links Auth UUIDs to the bigint `public.users.id` values (matching existing rows by email where unambiguous), creates a legacy profile row for new email-based Auth users without copying passwords, and provides the `current_public_user_id()` RPC used by listings and deliveries. It also enables safe client access to the legacy users table, adds owner-based item/delivery rules, creates the public `item-images` bucket and its read/upload/owner-delete policies, creates the private notifications table and message/delivery triggers, and adds notifications to Realtime.
 
@@ -52,6 +54,8 @@ The rental page supports optional JPG, PNG, and WEBP uploads up to 3 MB. Listing
 After running the SQL, confirm that `notifications` is enabled in the `supabase_realtime` publication if the project did not have that publication when the script ran. The frontend uses authenticated RLS-protected queries; do not place a service-role key in browser code.
 
 Run `profile_setup.sql` after `app_features.sql` to add vendor profile fields, create the public `avatars` bucket and per-user storage policies, and expose profile reads/updates through Auth-scoped RPCs. Do not grant browser clients direct access to `public.users`, which also contains legacy credential data. The profile page and script use these RPCs, while the portfolio reads only the current user's item rows.
+
+Run `admin_chat_setup.sql` after `auth_profiles.sql` and `messages.sql` to allow the admin inbox to read messages when either `app_metadata.is_admin` or `app_metadata.role` is set, and to add a protected name/email user search for starting new conversations. Admins must sign out and back in after changing their app metadata so their access token includes the updated role. Existing legacy item image paths such as `Frontend/Images/evening.jpg` are normalized by the rental page to deployed `/Images/...` URLs.
 
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 

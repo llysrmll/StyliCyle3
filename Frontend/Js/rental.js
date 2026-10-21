@@ -20,10 +20,27 @@ function renderListings(items) {
 
     if (item.image_path) {
       const image = document.createElement("img");
-      image.src = item.image_path;
+      image.src = resolveListingImageUrl(item.image_path);
       image.alt = item.title || "Rental listing";
       image.loading = "lazy";
+      image.onerror = () => {
+        image.onerror = null;
+        image.src = "/Images/avatar-placeholder.svg";
+        image.alt = "Listing image unavailable";
+      };
       card.appendChild(image);
+    }
+
+    function resolveListingImageUrl(imagePath) {
+      const value = String(imagePath || "").trim();
+      if (!value) return "";
+      if (/^(https?:|data:|blob:)/i.test(value)) return value;
+      const imageMarker = value.match(/(?:^|\/)Frontend\/Images\/(.+)$/i);
+      if (imageMarker) return `/Images/${imageMarker[1].split("/").map(encodeURIComponent).join("/")}`;
+      if (/^Images\//i.test(value)) {
+        return `/${value.split("/").map(encodeURIComponent).join("/")}`;
+      }
+      return value.startsWith("/") ? value : `/${value.split("/").map(encodeURIComponent).join("/")}`;
     }
 
     const content = document.createElement("div");

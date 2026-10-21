@@ -1,24 +1,5 @@
 // common.js - load on EVERY page, before the page-specific file.
 
-// ---------- Shared data ----------
-const notifications = [
-  { title: "Website partnership update posted", time: "Just now" },
-  { title: "New rental request", time: "2 min ago" },
-  { title: "Message from admin", time: "25 min ago" },
-  { title: "Profile verified", time: "1 day ago" }
-];
-
-const notificationDetails = [
-  {
-    title: "Partnership Update",
-    message: "Our website just announced a new partnership profile with Event Couture for suit and gown rentals.",
-  },
-  {
-    title: "Your Profile Updated",
-    message: "Your partnership profile information was refreshed with the latest contact details and items.",
-  }
-];
-
 // ---------- Helpers ----------
 function showToast(message) {
   const toast = document.createElement("div");
@@ -30,21 +11,6 @@ function showToast(message) {
     toast.classList.remove("visible");
     setTimeout(() => toast.remove(), 260);
   }, 2800);
-}
-
-function renderList(elementId, items, formatItem) {
-  const list = document.getElementById(elementId);
-  if (!list) return;
-  list.innerHTML = "";
-  items.forEach((item) => {
-    const li = document.createElement("li");
-    li.innerHTML = formatItem(item);
-    list.appendChild(li);
-  });
-}
-
-function showNotifications() {
-  document.getElementById("navNotificationBtn")?.click();
 }
 
 // ---------- Navbar ----------
@@ -73,24 +39,29 @@ let notificationDropdown = null;
 let notificationBadge = null;
 
 function renderRecentNotifications(rows) {
-  const list = document.getElementById("homeNotifications");
-  if (!list) return;
-  list.replaceChildren();
+  for (const listId of ["homeNotifications", "chatNotifications"]) {
+    const list = document.getElementById(listId);
+    if (!list) continue;
+    list.replaceChildren();
 
-  for (const notification of rows.slice(0, 5)) {
-    const item = document.createElement("li");
-    const title = document.createElement("strong");
-    title.textContent = notification.title;
-    const message = document.createElement("span");
-    message.textContent = notification.message;
-    item.append(title, message);
-    list.appendChild(item);
-  }
+    for (const notification of rows.slice(0, 5)) {
+      const item = document.createElement("li");
+      const title = document.createElement("strong");
+      title.textContent = notification.title;
+      const message = document.createElement("span");
+      message.textContent = notification.message;
+      const time = document.createElement("time");
+      time.dateTime = notification.created_at;
+      time.textContent = new Date(notification.created_at).toLocaleString();
+      item.append(title, message, time);
+      list.appendChild(item);
+    }
 
-  if (!rows.length) {
-    const item = document.createElement("li");
-    item.textContent = "No notifications yet.";
-    list.appendChild(item);
+    if (!rows.length) {
+      const item = document.createElement("li");
+      item.textContent = "No updates yet.";
+      list.appendChild(item);
+    }
   }
 }
 

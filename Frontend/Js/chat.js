@@ -202,22 +202,12 @@ initializeChat().catch((error) => {
   setChatStatus(`Chat could not start: ${error.message || String(error)}`);
 });
 
-if (document.getElementById("chatNotifications")) {
-  renderList("chatNotifications", notifications, item => `${item.title}<span>${item.time}</span>`);
-}
-
 document.getElementById("chatViewAllBtn")?.addEventListener("click", () => {
-  showToast("Viewing all notifications.");
+  document.getElementById("chatNotifications")?.scrollIntoView({ behavior: "smooth", block: "center" });
 });
 
 document.getElementById("chatNewReqBtn")?.addEventListener("click", () => {
-  showToast("You have 1 new request.");
-  const chatNotifications = document.getElementById("chatNotifications");
-  if (chatNotifications) {
-    const li = document.createElement("li");
-    li.innerHTML = "Rental request received<span>Just now</span>";
-    chatNotifications.prepend(li);
-  }
+  document.getElementById("navNotificationBtn")?.click();
 });
 
 document.getElementById("chatPostItemBtn")?.addEventListener("click", () => {
