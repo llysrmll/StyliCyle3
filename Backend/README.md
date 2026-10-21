@@ -51,6 +51,8 @@ The rental page supports optional JPG, PNG, and WEBP uploads up to 3 MB. Listing
 
 After running the SQL, confirm that `notifications` is enabled in the `supabase_realtime` publication if the project did not have that publication when the script ran. The frontend uses authenticated RLS-protected queries; do not place a service-role key in browser code.
 
+Run `profile_setup.sql` after `app_features.sql` to add vendor profile fields, create the public `avatars` bucket and per-user storage policies, and expose profile reads/updates through Auth-scoped RPCs. Do not grant browser clients direct access to `public.users`, which also contains legacy credential data. The profile page and script use these RPCs, while the portfolio reads only the current user's item rows.
+
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 
 ```sql

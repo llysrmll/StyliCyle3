@@ -9,7 +9,9 @@ const chatPartnerName = document.getElementById("chatPartnerName");
 const chatAvatar = document.querySelector(".chat-header .chat-avatar");
 
 let currentUserId = null;
-let currentReceiver = document.body.classList.contains("admin-message-page") ? "admin" : "";
+let currentReceiver = document.body.classList.contains("admin-message-page")
+  ? "admin"
+  : new URLSearchParams(window.location.search).get("partner") || "";
 let realtimeChannel = null;
 let loadSequence = 0;
 const currentMessages = new Map();
@@ -137,6 +139,11 @@ async function initializeChat() {
     button.addEventListener("click", () => selectChatPartner(button));
   });
 
+  if (currentReceiver && partnerButtons.length &&
+      !partnerButtons.some((button) => button.dataset.receiver === currentReceiver)) {
+    currentReceiver = "";
+  }
+
   if (!currentReceiver) {
     const selectedButton = partnerButtons.find((button) => button.classList.contains("active")) || partnerButtons[0];
     if (!selectedButton) {
@@ -144,8 +151,17 @@ async function initializeChat() {
       return;
     }
     currentReceiver = selectedButton.dataset.receiver;
-    if (chatPartnerName) chatPartnerName.textContent = selectedButton.dataset.name;
-    if (chatAvatar) chatAvatar.textContent = selectedButton.dataset.avatar;
+  }
+
+  const activeButton = partnerButtons.find((button) => button.dataset.receiver === currentReceiver);
+  if (activeButton) {
+    partnerButtons.forEach((button) => {
+      const active = button === activeButton;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    if (chatPartnerName) chatPartnerName.textContent = activeButton.dataset.name;
+    if (chatAvatar) chatAvatar.textContent = activeButton.dataset.avatar;
   }
 
   await loadMessages(currentReceiver);

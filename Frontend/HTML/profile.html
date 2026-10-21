@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +6,7 @@
   <title>Vendor Profile - StyliCycle</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../CSS/style.css">
+  <link rel="stylesheet" href="/CSS/style.css">
 </head>
 <body data-auth-required="true">
   <nav class="top-nav">
@@ -21,27 +20,29 @@
     <div class="nav-actions">
       <div class="nav-chat-input">
         <input id="navChatInput" type="text" placeholder="Ask chat...">
-        <button type="button" id="navChatButton">➤</button>
+        <button type="button" id="navChatButton" aria-label="Open chat">➤</button>
       </div>
       <button type="button" class="nav-button" id="navNotificationBtn">Notifications</button>
     </div>
   </nav>
 
   <main class="profile-container">
+    <p id="profileStatus" class="profile-status profile-page-status" role="status" aria-live="polite"></p>
     <section class="profile-overview" aria-labelledby="vendor-profile-title">
       <h2 class="profile-card-title" id="vendor-profile-title">Vendor Profile</h2>
 
       <header class="profile-header">
-        <img src="../Images/baby.jpg" alt="Elise Alata" class="profile-photo">
+        <img src="/Images/avatar-placeholder.svg" alt="Profile picture" class="profile-photo" id="profileImage">
         <div class="profile-info">
-          <p class="eyebrow">Verified Vendor</p>
-          <h1>Elise Alata</h1>
-          <p class="business-name">Event Couture</p>
-          <p class="contact-line">+63 123 39893</p>
-          <p class="contact-line">hello@eventcouture.ph</p>
+          <p class="eyebrow">Vendor Profile</p>
+          <h1 id="profileName">Loading profile...</h1>
+          <p class="business-name" id="profileBusiness"></p>
+          <p class="contact-line" id="profilePhone"></p>
+          <p class="contact-line" id="profileEmail"></p>
 
           <div class="profile-actions">
-            <button type="button" class="btn btn-primary" id="profileAdminChatBtn">Message Admin</button>
+            <button type="button" class="btn btn-primary" id="profileEditBtn">Edit Profile</button>
+            <button type="button" class="btn btn-outline" id="profileAdminChatBtn">Message Admin</button>
             <a class="btn btn-outline" href="rental.html">Manage Rentals</a>
           </div>
         </div>
@@ -51,24 +52,20 @@
         <div class="section-heading">
           <h2 id="vendor-about-title">About</h2>
         </div>
-        <p class="about-text">Trusted partner for bridal, formalwear, and event rentals with years of experience.</p>
+        <p class="about-text" id="profileBio"></p>
 
         <dl class="detail-list">
           <div class="detail-row">
             <dt>Location</dt>
-            <dd>Manila, PH</dd>
+            <dd id="profileLocation">Not provided</dd>
           </div>
           <div class="detail-row">
             <dt>Specialty</dt>
-            <dd>Gowns &amp; Suits</dd>
-          </div>
-          <div class="detail-row">
-            <dt>Verified</dt>
-            <dd>Yes</dd>
+            <dd id="profileSpecialty">Not provided</dd>
           </div>
           <div class="detail-row">
             <dt>Member since</dt>
-            <dd>Jan 2024</dd>
+            <dd id="profileMemberSince">-</dd>
           </div>
         </dl>
       </section>
@@ -78,28 +75,57 @@
       <div class="section-heading">
         <h2 id="vendor-portfolio-title">Portfolio</h2>
       </div>
-
-      <ul class="portfolio-list">
-        <li class="portfolio-item">
-          <span class="item-name">Silver Sequin Gown</span>
-          <span class="item-desc">Perfect for parties and evening events.</span>
-        </li>
-        <li class="portfolio-item">
-          <span class="item-name">Black Tuxedo Suit</span>
-          <span class="item-desc">Sharp wedding and formal event attire.</span>
-        </li>
-        <li class="portfolio-item">
-          <span class="item-name">Ivory Bridal Gown</span>
-          <span class="item-desc">Elegant and timeless bridal choice.</span>
-        </li>
-      </ul>
+      <p id="portfolioStatus" class="profile-status" role="status" aria-live="polite">Loading your listings...</p>
+      <ul class="portfolio-list" id="portfolioList"></ul>
     </section>
   </main>
 
+  <dialog class="profile-edit-dialog" id="profileEditModal" aria-labelledby="profileEditTitle">
+    <form id="profileEditForm" class="profile-edit-form">
+      <div class="profile-edit-heading">
+        <h2 id="profileEditTitle">Edit Profile</h2>
+        <button type="button" class="profile-dialog-close" id="profileEditClose" aria-label="Close">×</button>
+      </div>
+      <label class="field-group">
+        <span>Full Name</span>
+        <input type="text" name="full_name" id="editFullName" maxlength="160" required>
+      </label>
+      <label class="field-group">
+        <span>Business Name</span>
+        <input type="text" name="business_name" id="editBusinessName" maxlength="160">
+      </label>
+      <label class="field-group">
+        <span>Phone</span>
+        <input type="tel" name="phone" id="editPhone" maxlength="40">
+      </label>
+      <label class="field-group">
+        <span>Location</span>
+        <input type="text" name="location" id="editLocation" maxlength="160">
+      </label>
+      <label class="field-group">
+        <span>Specialty</span>
+        <input type="text" name="specialty" id="editSpecialty" maxlength="160">
+      </label>
+      <label class="field-group">
+        <span>Bio</span>
+        <textarea name="bio" id="editBio" maxlength="2000" rows="4"></textarea>
+      </label>
+      <label class="field-group file-field">
+        <span>Profile Picture</span>
+        <input type="file" name="avatar" id="editAvatar" accept="image/jpeg,image/png,image/webp">
+      </label>
+      <p id="profileEditStatus" class="profile-status" role="status" aria-live="polite"></p>
+      <div class="profile-edit-actions">
+        <button type="button" class="btn btn-outline" id="profileEditCancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../Js/supabase-client.js"></script>
-  <script src="../Js/auth.js"></script>
-  <script src="../Javascript/common.js"></script>
-  <script src="../Javascript/profile.js"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/auth.js"></script>
+  <script src="/Js/common.js"></script>
+  <script src="/Js/profile.js"></script>
 </body>
 </html>
