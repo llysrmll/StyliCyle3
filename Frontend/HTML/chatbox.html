@@ -5,6 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messages - StyliCycle</title>
   <link rel="stylesheet" href="/CSS/style.css">
+  
+  <!-- ADDED: Inline CSS to fix the chat input layout -->
+  <style>
+    /* Force the form to be a horizontal row */
+    .chat-form {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 10px !important;
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    /* Make the input take up all available space without pushing the button down */
+    #chatMessageInput {
+      flex: 1 !important;
+      width: auto !important;
+      margin: 0 !important;
+    }
+
+    /* Ensure the green send button is round, doesn't shrink, and aligns perfectly */
+    .chat-form button[type="submit"] {
+      flex-shrink: 0;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      margin: 0;
+    }
+  </style>
 </head>
 <body data-auth-required="true">
   <nav class="top-nav">
@@ -46,11 +79,13 @@
       </div>
       <div id="chatWindow" class="chat-window" aria-live="polite" aria-relevant="additions text"></div>
       <p id="chatStatus" class="chat-status" role="status" aria-live="polite"></p>
+      
       <form id="chatForm" class="chat-form">
         <button id="shareItemButton" type="button" hidden>Send this item</button>
         <input id="chatMessageInput" type="text" maxlength="5000" placeholder="Type a message..." aria-label="Message" required>
         <button type="submit" aria-label="Send message">➤</button>
       </form>
+      
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
