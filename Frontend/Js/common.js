@@ -44,23 +44,7 @@ function renderList(elementId, items, formatItem) {
 }
 
 function showNotifications() {
-  const info = document.getElementById("homeNotificationInfo");
-  const homeList = document.getElementById("homeNotifications");
-
-  if (info) {
-    info.classList.remove("hidden");
-    info.innerHTML = `
-      <h4>Here’s what updated</h4>
-      <p><strong>${notificationDetails[0].title}:</strong> ${notificationDetails[0].message}</p>
-      <p><strong>${notificationDetails[1].title}:</strong> ${notificationDetails[1].message}</p>
-    `;
-  }
-
-  if (homeList) {
-    homeList.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  showToast("Updated info shown in the notifications section.");
+  document.getElementById("navNotificationBtn")?.click();
 }
 
 // ---------- Navbar ----------
@@ -83,8 +67,195 @@ navChatInput?.addEventListener("keypress", (event) => {
 });
 
 const navNotificationBtn = document.getElementById("navNotificationBtn");
-navNotificationBtn?.addEventListener("click", () => {
-  showNotifications();
+let notificationUserId = null;
+let notificationChannel = null;
+let notificationDropdown = null;
+let notificationBadge = null;
+
+function renderRecentNotifications(rows) {
+  const list = document.getElementById("homeNotifications");
+  if (!list) return;
+  list.replaceChildren();
+
+  for (const notification of rows.slice(0, 5)) {
+    const item = document.createElement("li");
+    const title = document.createElement("strong");
+    title.textContent = notification.title;
+    const message = document.createElement("span");
+    message.textContent = notification.message;
+    item.append(title, message);
+    list.appendChild(item);
+  }
+
+  if (!rows.length) {
+    const item = document.createElement("li");
+    item.textContent = "No notifications yet.";
+    list.appendChild(item);
+  }
+}
+
+function setNotificationBadge(count) {
+  if (!notificationBadge) return;
+  notificationBadge.textContent = count > 99 ? "99+" : String(count);
+  notificationBadge.hidden = count < 1;
+  navNotificationBtn.setAttribute("aria-label", count ? `Notifications, ${count} unread` : "Notifications");
+}
+
+async function loadNotificationRows(markRead = false) {
+  if (!notificationUserId || !window.stylicycleSupabase) return;
+  const client = window.stylicycleSupabase;
+  const { data, error } = await client
+    .from("notifications")
+    .select("id, title, message, is_read, created_at")
+    .eq("user_id", notificationUserId)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) throw error;
+  const rows = data || [];
+  renderRecentNotifications(rows);
+  const unreadRows = rows.filter((row) => !row.is_read);
+
+  if (markRead && unreadRows.length) {
+    const { error: updateError } = await client
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", notificationUserId)
+      .in("id", unreadRows.map((row) => row.id))
+      .eq("is_read", false);
+    if (updateError) throw updateError;
+    rows.forEach((row) => { row.is_read = true; });
+  }
+  const { count, error: countError } = await client
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", notificationUserId)
+    .eq("is_read", false);
+  if (countError) throw countError;
+  setNotificationBadge(count || 0);
+
+  notificationDropdown.replaceChildren();
+  const heading = document.createElement("strong");
+  heading.className = "notification-dropdown-heading";
+  heading.textContent = "Notifications";
+  notificationDropdown.appendChild(heading);
+
+  if (!rows.length) {
+    const empty = document.createElement("p");
+    empty.className = "notification-dropdown-empty";
+    empty.textContent = "You’re all caught up.";
+    notificationDropdown.appendChild(empty);
+    return;
+  }
+
+  for (const row of rows) {
+    const item = document.createElement("article");
+    item.className = `notification-dropdown-item${row.is_read ? "" : " unread"}`;
+    const title = document.createElement("strong");
+    title.textContent = row.title;
+    const message = document.createElement("span");
+    message.textContent = row.message;
+    const time = document.createElement("time");
+    time.dateTime = row.created_at;
+    time.textContent = new Date(row.created_at).toLocaleString();
+    item.append(title, message, time);
+    notificationDropdown.appendChild(item);
+  }
+}
+
+function setupNotificationBell() {
+  if (!navNotificationBtn || !window.stylicycleSupabase) return;
+
+  navNotificationBtn.setAttribute("aria-expanded", "false");
+  navNotificationBtn.setAttribute("aria-haspopup", "true");
+  notificationBadge = document.createElement("span");
+  notificationBadge.className = "notification-badge";
+  notificationBadge.hidden = true;
+  navNotificationBtn.appendChild(notificationBadge);
+
+  notificationDropdown = document.createElement("section");
+  notificationDropdown.className = "notification-dropdown";
+  notificationDropdown.hidden = true;
+  notificationDropdown.setAttribute("aria-label", "Notifications");
+  navNotificationBtn.parentElement.appendChild(notificationDropdown);
+
+  navNotificationBtn.addEventListener("click", async () => {
+    const isOpening = notificationDropdown.hidden;
+    notificationDropdown.hidden = !isOpening;
+    navNotificationBtn.setAttribute("aria-expanded", String(isOpening));
+    if (!isOpening) return;
+
+    try {
+      await loadNotificationRows(true);
+    } catch (error) {
+      notificationDropdown.replaceChildren();
+      const message = document.createElement("p");
+      message.className = "notification-dropdown-error";
+      message.textContent = `Could not load notifications: ${error.message || String(error)}`;
+      notificationDropdown.appendChild(message);
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!notificationDropdown.contains(event.target) && !navNotificationBtn.contains(event.target)) {
+      notificationDropdown.hidden = true;
+      navNotificationBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  window.stylicycleSupabase.auth.getUser().then(async ({ data, error }) => {
+    if (error) throw error;
+    if (!data.user) return;
+    const { data: publicUserId, error: mappingError } = await window.stylicycleSupabase
+      .rpc("current_public_user_id");
+    if (mappingError) throw mappingError;
+    if (!publicUserId) throw new Error("Your account has no linked profile.");
+    notificationUserId = publicUserId;
+    await loadNotificationRows();
+
+    notificationChannel = window.stylicycleSupabase
+      .channel(`notifications-${publicUserId}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${publicUserId}`
+      }, async () => {
+        try {
+          await loadNotificationRows(!notificationDropdown.hidden);
+        } catch (loadError) {
+          showToast(`Could not refresh notifications: ${loadError.message || String(loadError)}`);
+        }
+      })
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          showToast("Realtime notifications are unavailable. Check Supabase Realtime setup.");
+        }
+      });
+  }).catch((error) => {
+    showToast(`Could not initialize notifications: ${error.message || String(error)}`);
+  });
+}
+
+setupNotificationBell();
+
+function goToRentalSearch() {
+  const input = document.getElementById("homeSearchInput");
+  const query = input?.value.trim();
+  if (!query) {
+    showToast("Enter a search term.");
+    input?.focus();
+    return;
+  }
+  window.location.href = `/HTML/rental.html?search=${encodeURIComponent(query)}`;
+}
+
+document.getElementById("homeSearchBtn")?.addEventListener("click", goToRentalSearch);
+document.getElementById("homeSearchInput")?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    goToRentalSearch();
+  }
 });
 
 // ---------- Floating support chat (available on every page) ----------

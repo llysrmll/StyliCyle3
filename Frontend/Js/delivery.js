@@ -229,6 +229,10 @@ if (document.getElementById('deliveryForm')) {
         throw new Error('Your session has expired. Please log in again.');
       }
       payload.auth_user_id = authData.user.id;
+      const { data: publicUserId, error: mappingError } = await supabaseClient.rpc('current_public_user_id');
+      if (mappingError) throw mappingError;
+      if (!publicUserId) throw new Error('Your account has no linked profile. Contact support to repair the account link.');
+      payload.user_id = publicUserId;
 
       const { data, error } = await supabaseClient
         .from('deliveries')

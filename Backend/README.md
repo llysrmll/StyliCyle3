@@ -31,6 +31,26 @@ Run `messages.sql` in Supabase SQL Editor to create the chat table, enable RLS, 
 
 Run `auth_profiles.sql`, `deliveries_rls.sql`, and then `admin_setup.sql` in Supabase SQL Editor to prepare profile lookups, delivery management, admin rental reads, and dashboard counts.
 
+## Rental search, image uploads, and notifications
+
+For a new database, run `schema.sql` first. **Do not rerun it on a database with data:** it drops and recreates the legacy tables.
+
+For an existing Vercel/Supabase database, run these scripts in the Supabase SQL Editor in order:
+
+1. `auth_profiles.sql`
+2. `messages.sql`
+3. `deliveries_rls.sql`
+4. `admin_setup.sql`
+5. `app_features.sql`
+
+`app_features.sql` links Auth UUIDs to the bigint `public.users.id` values (matching existing rows by email where unambiguous), creates a legacy profile row for new email-based Auth users without copying passwords, and provides the `current_public_user_id()` RPC used by listings and deliveries. It also enables safe client access to the legacy users table, adds owner-based item/delivery rules, creates the public `item-images` bucket and its read/upload/owner-delete policies, creates the private notifications table and message/delivery triggers, and adds notifications to Realtime.
+
+The `item-images` bucket is created as public by the SQL, so listing images can be displayed with their public URLs. Authenticated uploads must be placed under a folder matching their Auth UUID; the frontend does this automatically. Optional manual verification: in Supabase **Storage > Buckets**, confirm that `item-images` is marked **Public**.
+
+The rental page supports optional JPG, PNG, and WEBP uploads up to 3 MB. Listing search is restricted to available items and matches title or category. Delivery creation requires an email-based Auth account with a linked bigint profile. Auth accounts without email are intentionally not mapped to the legacy email-required `public.users` table.
+
+After running the SQL, confirm that `notifications` is enabled in the `supabase_realtime` publication if the project did not have that publication when the script ran. The frontend uses authenticated RLS-protected queries; do not place a service-role key in browser code.
+
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 
 ```sql

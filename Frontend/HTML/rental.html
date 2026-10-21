@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rentals - StyliCycle</title>
-  <link rel="stylesheet" href="../CSS/style.css">
+  <link rel="stylesheet" href="/CSS/style.css">
 </head>
 <body class="rental-page" data-auth-required="true">
   <nav class="top-nav">
@@ -34,7 +34,8 @@
 
       <div class="rental-layout">
         <section class="listings-panel">
-          <h3>Saved Listings</h3>
+          <h3>My Listings</h3>
+          <p id="rentalListingsStatus" class="rental-listings-status" role="status" aria-live="polite">Loading your listings...</p>
           <ul id="rentalListings"></ul>
         </section>
 
@@ -42,7 +43,6 @@
           <h1>List your item for rent</h1>
           <p class="subtitle">Share your dress, suit, or accessory with trusted event renters.</p>
 
-          <!-- CHANGED: every field now has a name="" so PHP can read it -->
           <form id="rentalForm" class="rental-form">
             <label class="field-group">
               <span>Item Name</span>
@@ -100,7 +100,7 @@
             <label class="check-row"><input type="checkbox" name="agree_terms" value="1" required> Agree to Rental Terms</label>
             <label class="check-row"><input type="checkbox" name="verify_condition" value="1" required> Verify Item Condition</label>
 
-            <button type="submit" class="primary-button">Submit for Review</button>
+            <button type="submit" class="primary-button">Publish Listing</button>
           </form>
         </section>
       </div>
@@ -108,9 +108,9 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../Js/supabase-client.js"></script>
-  <script src="../Js/auth.js"></script>
-  <script src="../Js/common.js"></script>
-  <script src="../Js/rental.js"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/auth.js"></script>
+  <script src="/Js/common.js"></script>
+  <script src="/Js/rental.js"></script>
 </body>
 </html>
