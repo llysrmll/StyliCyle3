@@ -6,7 +6,7 @@
   <title>Messages - StyliCycle</title>
   <link rel="stylesheet" href="../CSS/style.css">
 </head>
-<body>
+<body data-auth-required="true">
   <nav class="top-nav">
     <div class="nav-links">
       <a href="home.html">Home</a>
@@ -58,6 +58,9 @@
       </form>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../Js/supabase-client.js"></script>
+  <script src="../Js/auth.js"></script>
   <script src="../Js/common.js"></script>
   <script src="../Js/chat.js"></script>
 </body>

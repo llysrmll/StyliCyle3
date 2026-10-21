@@ -7,12 +7,13 @@ function esc(s) {
 }
 
 async function requireLogin() {
-  const r = await (await fetch(API + "me.php")).json();
-  if (!r.user) {
-    window.location.href = "index.html";
+  const { data, error } = await window.stylicycleSupabase.auth.getSession();
+  if (error) throw error;
+  if (!data.session) {
+    window.location.href = "login.html";
     return null;
   }
-  return r.user;
+  return data.session.user;
 }
 
 async function loadListings(mine = false) {

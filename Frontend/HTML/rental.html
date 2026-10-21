@@ -6,7 +6,7 @@
   <title>Rentals - StyliCycle</title>
   <link rel="stylesheet" href="../CSS/style.css">
 </head>
-<body class="rental-page">
+<body class="rental-page" data-auth-required="true">
   <nav class="top-nav">
     <div class="nav-links">
       <a href="home.html">Home</a>
@@ -107,6 +107,9 @@
     </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../Js/supabase-client.js"></script>
+  <script src="../Js/auth.js"></script>
   <script src="../Js/common.js"></script>
   <script src="../Js/rental.js"></script>
 </body>

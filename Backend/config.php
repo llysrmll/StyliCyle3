@@ -1,17 +1,21 @@
 <?php
-// config.php - shared by every endpoint. Fill in the 5 values below.
-// Supabase > Connect > "Session pooler" gives you the host and user.
-
-$DB_HOST = 'aws-0-ap-southeast-2.pooler.supabase.com';
-$DB_PORT = '5432';
-$DB_NAME = 'postgres';
-$DB_USER = 'postgres.kjiyvstudiqlmegyqfpg';
-$DB_PASS = '@Lebronjames1432';
+// Set these in the environment used by PHP/Apache; never store DB credentials here.
+$DB_HOST = getenv('SUPABASE_DB_HOST');
+$DB_PORT = getenv('SUPABASE_DB_PORT') ?: '5432';
+$DB_NAME = getenv('SUPABASE_DB_NAME');
+$DB_USER = getenv('SUPABASE_DB_USER');
+$DB_PASS = getenv('SUPABASE_DB_PASSWORD');
 
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
 session_start();
 header('Content-Type: application/json; charset=utf-8');
+
+if (!$DB_HOST || !$DB_NAME || !$DB_USER || $DB_PASS === false || $DB_PASS === '') {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'The database connection is not configured on the server.']);
+    exit;
+}
 
 // Any uncaught error comes back as JSON so the frontend can show it.
 set_exception_handler(function ($e) {

@@ -3,10 +3,7 @@
 // ==========================================
 // 1. SUPABASE INITIALIZATION
 // ==========================================
-const SUPABASE_URL = 'https://kjiyvstudiqlmegyqfpg.supabase.co'; // Replace with your actual URL
-const SUPABASE_ANON_KEY = 'sb_publishable_SVbMwppVGBSAZGanWksG1Q_H2O67fGy'; // Replace with your Publishable Key
-
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.stylicycleSupabase;
 
 if (document.getElementById('deliveryForm')) {
   let map;
@@ -226,6 +223,13 @@ if (document.getElementById('deliveryForm')) {
     submitButton.disabled = true;
 
     try {
+      const { data: authData, error: authError } = await supabaseClient.auth.getUser();
+      if (authError) throw authError;
+      if (!authData.user) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      payload.auth_user_id = authData.user.id;
+
       const { data, error } = await supabaseClient
         .from('deliveries')
         .insert([payload]);

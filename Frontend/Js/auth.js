@@ -1,19 +1,12 @@
-// auth.js - load on index.html (login) and signup.html
-// Talks to the PHP backend. Path is relative to the HTML page (Frontend/HTML/).
-const API = "../../Backend/";
+const authClient = window.stylicycleSupabase;
 
-async function postJSON(url, data) {
-  const res = await fetch(API + url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+function setSubmitting(form, submitting) {
+  const button = form.querySelector('button[type="submit"]');
+  if (button) button.disabled = submitting;
 }
 
-// ---------- Register ----------
-document.getElementById("registerForm")?.addEventListener("submit", async function (e) {
-  e.preventDefault();
+document.getElementById("registerForm")?.addEventListener("submit", async function (event) {
+  event.preventDefault();
   const firstName = document.getElementById("firstName").value.trim();
   const middleName = document.getElementById("middleName").value.trim();
   const lastName = document.getElementById("lastName").value.trim();
@@ -31,27 +24,97 @@ document.getElementById("registerForm")?.addEventListener("submit", async functi
   if (role === "admin") return alert("Admin accounts can only be created by an existing administrator.");
   if (role !== "user") return alert("Please select a valid account type.");
 
+  setSubmitting(this, true);
   try {
-    const r = await postJSON("register.php", { firstName, middleName, lastName, age, email, password, role });
-    if (!r.ok) return alert(r.error);
-    alert("Registration successful! Please log in.");
-    window.location.href = "index.html";
+    const { data, error } = await authClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName,
+          middle_name: middleName || null,
+          last_name: lastName,
+          age: Number(age),
+          role: "user"
+        },
+        emailRedirectTo: new URL("login.html", window.location.href).href
+      }
+    });
+    if (error) throw error;
+
+    if (data.session) {
+      window.location.replace("home.html");
+      return;
+    }
+    alert("Registration successful. Check your email to confirm your account, then log in.");
+    window.location.replace("login.html");
   } catch (err) {
-    alert("Could not reach the server. Is Apache running and are you using http://localhost/ ?");
+    alert(`Could not create your account: ${err.message || String(err)}`);
+  } finally {
+    setSubmitting(this, false);
   }
 });
 
-// ---------- Login ----------
-document.getElementById("loginForm")?.addEventListener("submit", async function (e) {
-  e.preventDefault();
+document.getElementById("loginForm")?.addEventListener("submit", async function (event) {
+  event.preventDefault();
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
+  setSubmitting(this, true);
   try {
-    const r = await postJSON("login.php", { email, password });
-    if (!r.ok) return alert(r.error);
-    window.location.href = "home.html";
+    const { error } = await authClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    window.location.replace("home.html");
   } catch (err) {
-    alert("Could not reach the server. Is Apache running and are you using http://localhost/ ?");
+    alert(`Could not log in: ${err.message || String(err)}`);
+  } finally {
+    setSubmitting(this, false);
   }
+});
+
+async function initializeSession() {
+  const isAuthPage = Boolean(document.getElementById("loginForm") || document.getElementById("registerForm"));
+  const requiresAuth = document.body.dataset.authRequired === "true";
+  if (!isAuthPage && !requiresAuth) return;
+
+  const { data, error } = await authClient.auth.getSession();
+  if (error) {
+    alert(`Could not verify your session: ${error.message}`);
+    return;
+  }
+
+  const session = data.session;
+  if (isAuthPage && session) {
+    window.location.replace("home.html");
+    return;
+  }
+
+  if (!requiresAuth) return;
+  if (!session) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  window.currentAuthUser = session.user;
+  const navActions = document.querySelector(".nav-actions");
+  const nav = document.querySelector(".top-nav");
+  const logoutButton = document.createElement("button");
+  logoutButton.type = "button";
+  logoutButton.className = "nav-button";
+  logoutButton.textContent = "Log out";
+  logoutButton.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+    const { error: signOutError } = await authClient.auth.signOut();
+    if (signOutError) {
+      logoutButton.disabled = false;
+      alert(`Could not log out: ${signOutError.message}`);
+      return;
+    }
+    window.location.replace("login.html");
+  });
+  (navActions || nav)?.appendChild(logoutButton);
+}
+
+initializeSession().catch((error) => {
+  alert(`Could not initialize authentication: ${error.message || String(error)}`);
 });
