@@ -28,7 +28,10 @@
 
           <label class="field-group">
             <span>Password</span>
-            <input type="password" id="password" placeholder="Your password" required>
+            <div class="password-input-wrap">
+              <input type="password" id="password" placeholder="Your password" required>
+              <button type="button" class="password-toggle" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
           </label>
 
           <input type="checkbox" id="agreeTermsLogin" class="sr-only" checked>
