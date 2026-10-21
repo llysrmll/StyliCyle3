@@ -5,55 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StyliCycle - Login</title>
   
-  <!-- Fixed absolute path for CSS -->
-  <link rel="stylesheet" href="/CSS/style.css">
-  
-  <style>
-    /* ==========================================
-       Password Toggle Styling
-       ========================================== */
-    .password-input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
-
-    /* Add padding to the right so text doesn't overlap the button */
-    .password-input-wrap input {
-      width: 100%;
-      padding-right: 70px; /* Space for the button */
-    }
-
-    /* Style the button to sit nicely inside the input */
-    .password-toggle {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: transparent;
-      border: none;
-      color: #5d204c; /* Brand color */
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .password-toggle:hover {
-      background-color: rgba(93, 32, 76, 0.08); /* Subtle hover effect */
-      color: #432b38;
-    }
-
-    .password-toggle:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(93, 32, 76, 0.3);
-    }
-  </style>
+  <link rel="stylesheet" href="../CSS/style.css">
 </head>
 <body class="auth-login-page">
   <div class="auth-shell">
@@ -95,31 +47,9 @@
     </main>
   </div>
 
-  <!-- Supabase & Auth Scripts (Fixed absolute paths) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/Js/supabase-client.js"></script>
-  <script src="/Js/auth.js"></script>
-
-  <!-- Password Toggle Logic -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggleBtn = document.querySelector('.password-toggle');
-      const passwordInput = document.getElementById('password');
-
-      if (toggleBtn && passwordInput) {
-        toggleBtn.addEventListener('click', () => {
-          const isPassword = passwordInput.type === 'password';
-          
-          // Toggle input type
-          passwordInput.type = isPassword ? 'text' : 'password';
-          
-          // Update button text and accessibility attributes
-          toggleBtn.textContent = isPassword ? 'Hide' : 'Show';
-          toggleBtn.setAttribute('aria-pressed', isPassword);
-          toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-        });
-      }
-    });
-  </script>
+  <script src="../Js/supabase-client.js"></script>
+  <script src="../Js/auth.js"></script>
+  <script src="../Js/password-toggle.js"></script>
 </body>
 </html>

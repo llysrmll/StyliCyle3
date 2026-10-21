@@ -1,19 +1,5 @@
 const authClient = window.stylicycleSupabase;
 
-document.querySelectorAll(".password-toggle").forEach((toggle) => {
-  toggle.addEventListener("click", () => {
-    const input = document.getElementById(toggle.getAttribute("aria-controls"));
-    if (!input) return;
-
-    const showPassword = input.type === "password";
-    input.type = showPassword ? "text" : "password";
-    toggle.textContent = showPassword ? "Hide" : "Show";
-    toggle.setAttribute("aria-label", `${showPassword ? "Hide" : "Show"} ${input.id === "confirmPassword" ? "confirm password" : "password"}`);
-    toggle.setAttribute("aria-pressed", String(showPassword));
-    input.focus();
-  });
-});
-
 function setSubmitting(form, submitting) {
   const button = form.querySelector('button[type="submit"]');
   if (button) button.disabled = submitting;
