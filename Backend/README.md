@@ -21,7 +21,9 @@ stylicycle/
 
 ## Vercel login and sessions
 
-The static Vercel frontend uses Supabase Auth for signup, login, and persistent browser sessions. New signups are created in Supabase Authentication, and protected pages provide a log-out button. Existing accounts must exist in Supabase Authentication to sign in; a row in `public.users` alone is not an Auth account. Add the deployed site's login URL to Supabase Authentication > URL Configuration > Redirect URLs so email confirmation can return users to the site.
+The static Vercel frontend uses Supabase Auth for signup, login, and persistent browser sessions. Credentials are stored by Supabase Auth and appear under **Authentication > Users**; they are not written to the legacy `public.users` table. To show signup details in a queryable public table, run `auth_profiles.sql` in Supabase SQL Editor. It creates `public.profiles`, syncs profile fields from Auth metadata, and backfills existing Auth accounts without copying passwords. Add the deployed site's login URL to Supabase Authentication > URL Configuration > Redirect URLs so email confirmation can return users to the site.
+
+Supabase may temporarily reject signup confirmation emails with HTTP 429 (`email rate limit exceeded`). Wait for the configured Auth email limit to reset, or configure a custom SMTP provider in Supabase Auth settings. Deleting a `public.users` row does not delete the Auth account or reset the email rate limit.
 
 Run `deliveries_rls.sql` in Supabase SQL Editor to enable authenticated delivery inserts and per-user reads.
 

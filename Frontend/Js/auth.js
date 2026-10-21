@@ -5,6 +5,13 @@ function setSubmitting(form, submitting) {
   if (button) button.disabled = submitting;
 }
 
+function authErrorMessage(error) {
+  if (error?.status === 429 || error?.code === "over_email_send_rate_limit") {
+    return "Supabase has temporarily rate-limited signup emails. Wait before trying again. Deleting a row from public.users does not reset Supabase Auth or its email limit.";
+  }
+  return error?.message || String(error);
+}
+
 document.getElementById("registerForm")?.addEventListener("submit", async function (event) {
   event.preventDefault();
   const firstName = document.getElementById("firstName").value.trim();
@@ -49,7 +56,7 @@ document.getElementById("registerForm")?.addEventListener("submit", async functi
     alert("Registration successful. Check your email to confirm your account, then log in.");
     window.location.replace("login.html");
   } catch (err) {
-    alert(`Could not create your account: ${err.message || String(err)}`);
+    alert(`Could not create your account: ${authErrorMessage(err)}`);
   } finally {
     setSubmitting(this, false);
   }
