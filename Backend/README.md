@@ -58,7 +58,7 @@ Run `profile_setup.sql` after `app_features.sql` to add vendor profile fields, c
 
 Run `admin_chat_setup.sql` after `auth_profiles.sql` and `messages.sql` to allow the admin inbox to read messages when either `app_metadata.is_admin` or `app_metadata.role` is set, and to add a protected name/email user search for starting new conversations. Admins must sign out and back in after changing their app metadata so their access token includes the updated role. Existing legacy item image paths such as `Frontend/Images/evening.jpg` are normalized by the rental page to deployed `/Images/...` URLs.
 
-Run `vendor_chat_setup.sql` after `app_features.sql` and `profile_setup.sql` to enable searchable rental results with safe vendor UUID/name fields and to provide names for existing direct-message contacts. It does not grant clients direct access to `public.users`. The `messages` table stores `receiver_id` as text; direct vendor chats store the UUID's text form, while the support chat uses `admin`.
+Run `vendor_chat_setup.sql` after `app_features.sql` and `profile_setup.sql` to enable searchable rental results with safe vendor UUID/name fields, resolve older listing links by bigint owner ID, and provide names for existing direct-message contacts. It does not grant clients direct access to `public.users`. The `messages` table stores `receiver_id` as text; direct vendor chats store the UUID's text form, while the support chat uses `admin`.
 
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 

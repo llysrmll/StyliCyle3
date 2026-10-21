@@ -85,6 +85,38 @@ $function$;
 revoke all on function public.search_rentals_with_vendors(text) from public, anon;
 grant execute on function public.search_rentals_with_vendors(text) to authenticated;
 
+create or replace function public.vendor_chat_details(p_owner_id bigint)
+returns table (
+  auth_user_id uuid,
+  vendor_name text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select
+    coalesce(
+      nullif(to_jsonb(public_user) ->> 'auth_user_id', ''),
+      nullif(to_jsonb(public_user) ->> 'auth_id', '')
+    )::uuid as auth_user_id,
+    coalesce(
+      nullif(btrim(to_jsonb(public_user) ->> 'business_name'), ''),
+      nullif(btrim(to_jsonb(public_user) ->> 'full_name'), ''),
+      nullif(btrim(concat_ws(' ', public_user.first_name, public_user.last_name)), ''),
+      'Vendor'
+    ) as vendor_name
+  from public.users as public_user
+  where public_user.id = p_owner_id
+    and auth.uid() is not null
+  limit 1
+$function$;
+
+revoke all on function public.vendor_chat_details(bigint) from public, anon;
+grant execute on function public.vendor_chat_details(bigint) to authenticated;
+
+drop function if exists public.chat_partner_details(uuid[]);
+
 create or replace function public.chat_partner_details(p_auth_user_ids uuid[])
 returns table (
   id uuid,

@@ -10,6 +10,7 @@ const chatPartnerContext = document.getElementById("chatPartnerContext");
 const chatAvatar = document.getElementById("chatAvatar");
 const chatParams = new URLSearchParams(window.location.search);
 const requestedReceiver = chatParams.get("receiver_id") || chatParams.get("partner") || "";
+const requestedOwnerId = chatParams.get("partner_id") || "";
 const requestedName = chatParams.get("name") || "";
 const itemTitle = chatParams.get("item") || "";
 const isAdminChatPage = document.body.classList.contains("admin-message-page");
@@ -17,6 +18,8 @@ const isAdminChatPage = document.body.classList.contains("admin-message-page");
 let currentUserId = null;
 let currentReceiver = isAdminChatPage ? "admin" : requestedReceiver;
 let currentContactName = requestedName;
+let listingReceiver = requestedReceiver;
+let currentItemTitle = itemTitle;
 let realtimeChannel = null;
 let loadSequence = 0;
 const currentMessages = new Map();
@@ -110,7 +113,7 @@ function updateHeader(name, context = "Conversation") {
   currentContactName = name || (currentReceiver === "admin" ? "Admin Support" : "StyliCycle user");
   if (chatPartnerName) chatPartnerName.textContent = currentContactName;
   if (chatAvatar) chatAvatar.textContent = getInitials(currentContactName);
-  if (chatPartnerContext) chatPartnerContext.textContent = itemTitle ? `Regarding ${itemTitle}` : context;
+  if (chatPartnerContext) chatPartnerContext.textContent = currentItemTitle ? `Regarding ${currentItemTitle}` : context;
 }
 
 async function loadMessages(receiverId) {
@@ -230,11 +233,15 @@ async function loadContacts() {
 async function selectContact(contact) {
   currentContactName = contact.name;
   currentReceiver = contact.id;
+  currentItemTitle = contact.id === listingReceiver ? itemTitle : "";
   updateHeader(contact.name, contact.id === "admin" ? "StyliCycle Support" : "Vendor");
   renderContacts();
   const params = new URLSearchParams(window.location.search);
+  params.delete("partner_id");
   params.set("receiver_id", contact.id);
   params.set("name", contact.name);
+  if (currentItemTitle) params.set("item", currentItemTitle);
+  else params.delete("item");
   window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
   await loadMessages(contact.id);
 }
@@ -249,17 +256,34 @@ async function initializeChat() {
   }
   currentUserId = data.user.id;
 
-  if (requestedReceiver === "admin" || (!requestedReceiver && isAdminChatPage)) {
+  if (requestedOwnerId) {
+    if (!/^\d+$/.test(requestedOwnerId)) {
+      throw new Error("The requested vendor ID is invalid.");
+    }
+    const { data: vendors, error: vendorError } = await chatClient.rpc("vendor_chat_details", {
+      p_owner_id: Number(requestedOwnerId)
+    });
+    if (vendorError) throw new Error(`Could not load the vendor: ${vendorError.message}`);
+    const vendor = vendors?.[0];
+    if (!vendor?.auth_user_id) {
+      throw new Error("This listing owner is not linked to a messaging account yet.");
+    }
+    currentReceiver = vendor.auth_user_id;
+    listingReceiver = currentReceiver;
+    currentContactName = chatParams.get("name") || vendor.vendor_name;
+  } else if (requestedReceiver === "admin" || (!requestedReceiver && isAdminChatPage)) {
     currentReceiver = "admin";
     currentContactName = "Admin Support";
   } else if (requestedReceiver && !isUuid(requestedReceiver)) {
     throw new Error("The requested chat partner ID is invalid.");
+  } else if (isUuid(requestedReceiver)) {
+    listingReceiver = requestedReceiver;
   }
 
   if (currentReceiver === "admin") {
     updateHeader("Admin Support", "StyliCycle Support");
   } else if (currentReceiver) {
-    updateHeader(requestedName || "Vendor", "Vendor");
+    updateHeader(currentContactName || requestedName || "Vendor", "Vendor");
   }
 
   await loadContacts();
