@@ -5,6 +5,7 @@ const listingsStatus = document.getElementById("rentalListingsStatus");
 const rentalForm = document.getElementById("rentalForm");
 const searchTerm = new URLSearchParams(window.location.search).get("search")?.trim() || "";
 let currentPublicUserId = null;
+let currentAuthUserId = null;
 let showingSearchResults = Boolean(searchTerm);
 
 function setListingsStatus(message) {
@@ -15,25 +16,20 @@ function renderListings(items) {
   listingsElement.replaceChildren();
   for (const item of items) {
     const listItem = document.createElement("li");
-    const card = document.createElement("article");
+    const canMessageVendor = item.vendor_auth_id && item.vendor_auth_id !== currentAuthUserId;
+    const card = document.createElement(canMessageVendor ? "a" : "article");
     card.className = "listing-card listing-card-clickable";
-    card.tabIndex = 0;
-    card.setAttribute("role", "link");
-    card.setAttribute("aria-label", `Message the vendor about ${item.title || "this listing"}`);
-    const openVendorChat = () => {
+    if (canMessageVendor) {
       const params = new URLSearchParams({
-        partner_id: String(item.owner_id),
+        receiver_id: item.vendor_auth_id,
+        name: item.vendor_name || "Vendor",
         item: item.title || ""
       });
-      window.location.href = `/HTML/chatbox.html?${params.toString()}`;
-    };
-    card.addEventListener("click", openVendorChat);
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openVendorChat();
-      }
-    });
+      card.href = `/HTML/chatbox.html?${params.toString()}`;
+      card.setAttribute("aria-label", `Message ${item.vendor_name || "the vendor"} about ${item.title || "this listing"}`);
+    } else {
+      card.classList.remove("listing-card-clickable");
+    }
 
     if (item.image_path) {
       const image = document.createElement("img");
@@ -67,6 +63,12 @@ function renderListings(items) {
     const details = document.createElement("span");
     details.textContent = `${item.description || item.category || ""} — ₱${item.price_per_day}/day · Size ${item.size || "-"}`;
     content.append(title, details);
+    if (canMessageVendor) {
+      const vendor = document.createElement("span");
+      vendor.className = "listing-vendor";
+      vendor.textContent = `Message ${item.vendor_name || "vendor"}`;
+      content.appendChild(vendor);
+    }
     card.appendChild(content);
     listItem.appendChild(card);
     listingsElement.appendChild(listItem);
@@ -104,37 +106,15 @@ async function searchListings(query) {
   if (listingsHeading) listingsHeading.textContent = `Search Results for “${query}”`;
   setListingsStatus("Searching rentals...");
 
-  const pattern = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
-  const [titleResults, categoryResults] = await Promise.all([
-    rentalClient
-      .from("items")
-      .select("id, owner_id, title, category, price_per_day, size, description, image_path, status, created_at")
-      .eq("status", "available")
-      .ilike("title", pattern)
-      .order("created_at", { ascending: false }),
-    rentalClient
-      .from("items")
-      .select("id, owner_id, title, category, price_per_day, size, description, image_path, status, created_at")
-      .eq("status", "available")
-      .ilike("category", pattern)
-      .order("created_at", { ascending: false })
-  ]);
-
-  const error = titleResults.error || categoryResults.error;
+  const { data, error } = await rentalClient.rpc("search_rentals_with_vendors", {
+    p_query: query
+  });
   if (error) {
     setListingsStatus(`Could not search rentals: ${error.message}`);
     return;
   }
-
-  const itemsById = new Map();
-  for (const item of [...(titleResults.data || []), ...(categoryResults.data || [])]) {
-    itemsById.set(item.id, item);
-  }
-  const items = [...itemsById.values()].sort(
-    (first, second) => new Date(second.created_at) - new Date(first.created_at)
-  );
-  renderListings(items);
-  setListingsStatus(items.length ? `${items.length} result(s)` : "No matching rentals found.");
+  renderListings(data || []);
+  setListingsStatus(data?.length ? `${data.length} result(s)` : "No matching rentals found.");
 }
 
 async function refreshListings() {
@@ -243,6 +223,7 @@ async function initializeRentals() {
   }
 
   currentPublicUserId = await getPublicUserId();
+  currentAuthUserId = data.user.id;
   await refreshListings();
 }
 

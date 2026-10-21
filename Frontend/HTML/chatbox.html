@@ -26,8 +26,8 @@
   <main class="container chat-layout">
     <aside class="side-panel">
       <h3>Messages</h3>
-      <button type="button" id="eventCoutureChatButton" class="chat-partner-button active" data-receiver="event_couture" data-name="Event Couture" data-avatar="EC">Event Couture</button>
-      <button type="button" id="adminChatButton" class="chat-partner-button" data-receiver="admin" data-name="Admin Support" data-avatar="A">Admin Support</button>
+      <p id="chatPartnersStatus" class="chat-partners-status" role="status" aria-live="polite">Loading conversations...</p>
+      <div id="chatPartners" class="chat-partners"></div>
       <div class="notification-list">
         <h4>Recent updates</h4>
         <ul id="chatNotifications"></ul>
@@ -35,10 +35,10 @@
     </aside>
     <section class="chatbox">
       <div class="chat-header">
-        <div class="chat-avatar">EC</div>
+        <div class="chat-avatar" id="chatAvatar">SC</div>
         <div class="chat-info">
-          <h2 id="chatPartnerName">Event Couture</h2>
-          <span id="chatPartnerContext">Rental partner</span>
+          <h2 id="chatPartnerName">Select a conversation</h2>
+          <span id="chatPartnerContext">Choose a contact to begin chatting</span>
         </div>
         <div class="chat-user-actions">
           <button type="button" class="chat-action-button" onclick="location.href='profile.html'">View Profile</button>

@@ -44,6 +44,7 @@ For an existing Vercel/Supabase database, run these scripts in the Supabase SQL 
 5. `app_features.sql`
 6. `profile_setup.sql` (if using vendor profiles)
 7. `admin_chat_setup.sql` (if using the searchable admin inbox)
+8. `vendor_chat_setup.sql` (if using rental-to-vendor chat)
 
 `app_features.sql` links Auth UUIDs to the bigint `public.users.id` values (matching existing rows by email where unambiguous), creates a legacy profile row for new email-based Auth users without copying passwords, and provides the `current_public_user_id()` RPC used by listings and deliveries. It also enables safe client access to the legacy users table, adds owner-based item/delivery rules, creates the public `item-images` bucket and its read/upload/owner-delete policies, creates the private notifications table and message/delivery triggers, and adds notifications to Realtime.
 
@@ -56,6 +57,8 @@ After running the SQL, confirm that `notifications` is enabled in the `supabase_
 Run `profile_setup.sql` after `app_features.sql` to add vendor profile fields, create the public `avatars` bucket and per-user storage policies, and expose profile reads/updates through Auth-scoped RPCs. Do not grant browser clients direct access to `public.users`, which also contains legacy credential data. The profile page and script use these RPCs, while the portfolio reads only the current user's item rows.
 
 Run `admin_chat_setup.sql` after `auth_profiles.sql` and `messages.sql` to allow the admin inbox to read messages when either `app_metadata.is_admin` or `app_metadata.role` is set, and to add a protected name/email user search for starting new conversations. Admins must sign out and back in after changing their app metadata so their access token includes the updated role. Existing legacy item image paths such as `Frontend/Images/evening.jpg` are normalized by the rental page to deployed `/Images/...` URLs.
+
+Run `vendor_chat_setup.sql` after `app_features.sql` and `profile_setup.sql` to enable searchable rental results with safe vendor UUID/name fields and to provide names for existing direct-message contacts. It does not grant clients direct access to `public.users`. The `messages` table stores `receiver_id` as text; direct vendor chats store the UUID's text form, while the support chat uses `admin`.
 
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 
