@@ -262,9 +262,27 @@ begin
         )
       )
   ) then
-    insert into public.item_interest_shares (sender_id, item_id)
-    values ((select auth.uid()), v_item.id)
-    on conflict (sender_id, item_id) do nothing;
+    select existing_message.*
+    into v_message
+    from public.messages as existing_message
+    where existing_message.sender_id = (select auth.uid())
+      and existing_message.receiver_id = v_owner_auth_id::text
+      and (
+        (
+          existing_message.content ~ '"type"[[:space:]]*:[[:space:]]*"listing_interest"'
+          and existing_message.content ~ (
+            '"item_id"[[:space:]]*:[[:space:]]*' || v_item.id::text || '([^0-9]|$)'
+          )
+        )
+        or existing_message.content ~ (
+          'Listing ID:[[:space:]]*' || v_item.id::text || '([^0-9]|$)'
+        )
+      )
+    order by existing_message.created_at
+    limit 1;
+    if found then
+      return next v_message;
+    end if;
     return;
   end if;
 
@@ -274,7 +292,28 @@ begin
   get diagnostics v_rows_inserted = row_count;
 
   if v_rows_inserted = 0 then
-    return;
+    select existing_message.*
+    into v_message
+    from public.messages as existing_message
+    where existing_message.sender_id = (select auth.uid())
+      and existing_message.receiver_id = v_owner_auth_id::text
+      and (
+        (
+          existing_message.content ~ '"type"[[:space:]]*:[[:space:]]*"listing_interest"'
+          and existing_message.content ~ (
+            '"item_id"[[:space:]]*:[[:space:]]*' || v_item.id::text || '([^0-9]|$)'
+          )
+        )
+        or existing_message.content ~ (
+          'Listing ID:[[:space:]]*' || v_item.id::text || '([^0-9]|$)'
+        )
+      )
+    order by existing_message.created_at
+    limit 1;
+    if found then
+      return next v_message;
+      return;
+    end if;
   end if;
 
   insert into public.messages (sender_id, receiver_id, content)

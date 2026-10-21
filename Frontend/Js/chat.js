@@ -491,14 +491,10 @@ async function initializeChat() {
       if (insertError) throw insertError;
       const insertedMessage = Array.isArray(data) ? data[0] : data;
       if (!insertedMessage) {
-        shareItemButton.dataset.sent = "true";
-        shareItemButton.textContent = "Item already sent";
-        shareItemButton.disabled = true;
-        setChatStatus("You have already sent this listing to its vendor.");
-        return;
+        throw new Error("The item share was not returned by Supabase. Run the latest vendor_chat_setup.sql script, then try again.");
       }
       shareItemButton.dataset.sent = "true";
-      shareItemButton.textContent = "Item sent";
+      shareItemButton.textContent = "Item already sent";
       addMessage(insertedMessage);
       setChatStatus("Listing sent to the vendor.");
       await loadContacts();
