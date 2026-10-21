@@ -16,7 +16,24 @@ function renderListings(items) {
   for (const item of items) {
     const listItem = document.createElement("li");
     const card = document.createElement("article");
-    card.className = "listing-card";
+    card.className = "listing-card listing-card-clickable";
+    card.tabIndex = 0;
+    card.setAttribute("role", "link");
+    card.setAttribute("aria-label", `Message the vendor about ${item.title || "this listing"}`);
+    const openVendorChat = () => {
+      const params = new URLSearchParams({
+        partner_id: String(item.owner_id),
+        item: item.title || ""
+      });
+      window.location.href = `/HTML/chatbox.html?${params.toString()}`;
+    };
+    card.addEventListener("click", openVendorChat);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openVendorChat();
+      }
+    });
 
     if (item.image_path) {
       const image = document.createElement("img");
@@ -70,7 +87,7 @@ async function loadMyListings() {
 
   const { data, error } = await rentalClient
     .from("items")
-    .select("id, title, category, price_per_day, size, description, image_path, status, created_at")
+    .select("id, owner_id, title, category, price_per_day, size, description, image_path, status, created_at")
     .eq("owner_id", currentPublicUserId)
     .order("created_at", { ascending: false });
 
@@ -91,13 +108,13 @@ async function searchListings(query) {
   const [titleResults, categoryResults] = await Promise.all([
     rentalClient
       .from("items")
-      .select("id, title, category, price_per_day, size, description, image_path, status, created_at")
+      .select("id, owner_id, title, category, price_per_day, size, description, image_path, status, created_at")
       .eq("status", "available")
       .ilike("title", pattern)
       .order("created_at", { ascending: false }),
     rentalClient
       .from("items")
-      .select("id, title, category, price_per_day, size, description, image_path, status, created_at")
+      .select("id, owner_id, title, category, price_per_day, size, description, image_path, status, created_at")
       .eq("status", "available")
       .ilike("category", pattern)
       .order("created_at", { ascending: false })

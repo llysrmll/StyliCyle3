@@ -1512,6 +1512,15 @@ h1 {
   align-items: center;
 }
 
+.listing-card-clickable {
+  cursor: pointer;
+}
+
+.listing-card-clickable:focus-visible {
+  outline: 2px solid #2e6b3f;
+  outline-offset: 4px;
+}
+
 .listing-card img {
   width: 90px;
   height: 90px;
