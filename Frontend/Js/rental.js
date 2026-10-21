@@ -3,9 +3,11 @@ const listingsElement = document.getElementById("rentalListings");
 const listingsHeading = document.querySelector(".listings-panel h3");
 const listingsStatus = document.getElementById("rentalListingsStatus");
 const rentalForm = document.getElementById("rentalForm");
-const searchTerm = new URLSearchParams(window.location.search).get("search")?.trim() || "";
+let searchTerm = new URLSearchParams(window.location.search).get("search")?.trim() || "";
 let currentPublicUserId = null;
 let showingSearchResults = Boolean(searchTerm);
+const rentalSearchForm = document.getElementById("rentalSearchForm");
+const rentalSearchInput = document.getElementById("rentalSearchInput");
 
 function setListingsStatus(message) {
   if (listingsStatus) listingsStatus.textContent = message;
@@ -104,6 +106,7 @@ async function loadMyListings() {
 }
 
 async function searchListings(query) {
+  searchTerm = query;
   showingSearchResults = true;
   if (listingsHeading) listingsHeading.textContent = `Search Results for “${query}”`;
   setListingsStatus("Searching rentals...");
@@ -203,8 +206,27 @@ if (rentalForm) {
 }
 
 document.getElementById("rentalMyListingsBtn")?.addEventListener("click", () => {
+  searchTerm = "";
+  showingSearchResults = false;
+  if (rentalSearchInput) rentalSearchInput.value = "";
   window.history.replaceState({}, "", window.location.pathname);
   loadMyListings();
+  listingsElement.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+rentalSearchForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const query = rentalSearchInput?.value.trim() || "";
+  if (!query) {
+    setListingsStatus("Enter a title or category to search.");
+    rentalSearchInput?.focus();
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  params.set("search", query);
+  window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+  await searchListings(query);
   listingsElement.scrollIntoView({ behavior: "smooth", block: "center" });
 });
 
@@ -225,6 +247,7 @@ async function initializeRentals() {
   }
 
   currentPublicUserId = await getPublicUserId();
+  if (rentalSearchInput) rentalSearchInput.value = searchTerm;
   await refreshListings();
 }
 
