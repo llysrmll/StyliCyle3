@@ -1237,6 +1237,20 @@ h1 {
   box-shadow: 0 12px 24px rgba(98, 55, 84, 0.12);
 }
 
+.side-panel .chat-partner-button:not(.active) {
+  background: #ffffff;
+  color: #5d204c;
+  box-shadow: inset 0 0 0 1px rgba(95, 36, 73, 0.18);
+}
+
+.chat-status {
+  min-height: 1.25rem;
+  margin: 0;
+  padding: 0 22px 10px;
+  color: #6b5c64;
+  font-size: 0.9rem;
+}
+
 .page-actions {
   display: flex;
   flex-wrap: wrap;

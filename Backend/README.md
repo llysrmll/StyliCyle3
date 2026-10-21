@@ -27,6 +27,8 @@ Supabase may temporarily reject signup confirmation emails with HTTP 429 (`email
 
 Run `deliveries_rls.sql` in Supabase SQL Editor to enable authenticated delivery inserts and per-user reads.
 
+Run `messages.sql` in Supabase SQL Editor to create the chat table, enable RLS, and add the table to Supabase Realtime. The temporary `receiver_id = 'admin'` read policy is shared with all authenticated users for testing; remove that condition before using private admin conversations with real users.
+
 ## Legacy PHP endpoints
 
 Vercel does not execute the PHP files in `Backend/`. Those endpoints also use PHP sessions, which are separate from Supabase Auth sessions. The current Vercel frontend does not use the PHP login/register endpoints, and PHP listing APIs need a PHP-capable host plus an auth bridge or migration before they can be used with this Supabase session.

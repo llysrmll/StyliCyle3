@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messages - StyliCycle</title>
-  <link rel="stylesheet" href="../CSS/style.css">
+  <link rel="stylesheet" href="/CSS/style.css">
 </head>
 <body data-auth-required="true">
   <nav class="top-nav">
@@ -26,8 +26,8 @@
   <main class="container chat-layout">
     <aside class="side-panel">
       <h3>Messages</h3>
-      <button type="button" class="active">Event Couture</button>
-      <button type="button" onclick="location.href='message.html'">Admin Support</button>
+      <button type="button" id="eventCoutureChatButton" class="chat-partner-button active" data-receiver="event_couture" data-name="Event Couture" data-avatar="EC">Event Couture</button>
+      <button type="button" id="adminChatButton" class="chat-partner-button" data-receiver="admin" data-name="Admin Support" data-avatar="A">Admin Support</button>
       <div class="notification-list">
         <h4>Recent updates</h4>
         <ul id="chatNotifications"></ul>
@@ -37,31 +37,25 @@
       <div class="chat-header">
         <div class="chat-avatar">EC</div>
         <div class="chat-info">
-          <h2>Event Couture</h2>
+          <h2 id="chatPartnerName">Event Couture</h2>
           <span>Rental partner</span>
         </div>
         <div class="chat-user-actions">
           <button type="button" class="chat-action-button" onclick="location.href='profile.html'">View Profile</button>
         </div>
       </div>
-      <div class="chat-window">
-        <div class="message bot">
-          <div class="message-text">Hello! Thanks for contacting Event Couture. How can we help with your rental?</div>
-        </div>
-        <div class="message user">
-          <div class="message-text">Hi, I have a question about availability for an upcoming event.</div>
-        </div>
-      </div>
+      <div id="chatWindow" class="chat-window" aria-live="polite" aria-relevant="additions text"></div>
+      <p id="chatStatus" class="chat-status" role="status" aria-live="polite"></p>
       <form id="chatForm" class="chat-form">
-        <input type="text" placeholder="Type a message..." aria-label="Message" required>
+        <input id="chatMessageInput" type="text" maxlength="5000" placeholder="Type a message..." aria-label="Message" required>
         <button type="submit" aria-label="Send message">➤</button>
       </form>
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../Js/supabase-client.js"></script>
-  <script src="../Js/auth.js"></script>
-  <script src="../Js/common.js"></script>
-  <script src="../Js/chat.js"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/auth.js"></script>
+  <script src="/Js/common.js"></script>
+  <script src="/Js/chat.js"></script>
 </body>
 </html>

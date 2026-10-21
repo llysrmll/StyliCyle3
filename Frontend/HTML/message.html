@@ -52,17 +52,11 @@
           <button type="button" class="chat-action-button" onclick="location.href='profile.html'">My Profile</button>
         </div>
       </div>
-      <div class="chat-window">
-        <div class="message bot">
-          <div class="message-text">Hello! This is the admin support channel. How can we help you today?</div>
-        </div>
-        <div class="message user">
-          <div class="message-text">Hi, I need assistance with my new rental listing.</div>
-        </div>
-      </div>
+      <div id="chatWindow" class="chat-window" aria-live="polite" aria-relevant="additions text"></div>
+      <p id="chatStatus" class="chat-status" role="status" aria-live="polite"></p>
       <form id="chatForm" class="chat-form">
-        <input type="text" placeholder="Type a message to admin..." aria-label="Message to admin" required>
-        <button type="submit">→</button>
+        <input id="chatMessageInput" type="text" maxlength="5000" placeholder="Type a message to admin..." aria-label="Message to admin" required>
+        <button type="submit" aria-label="Send message">→</button>
       </form>
     </section>
   </main>
