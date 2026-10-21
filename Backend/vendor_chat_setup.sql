@@ -245,6 +245,29 @@ begin
     raise exception 'You cannot send an item of your own to yourself.';
   end if;
 
+  if exists (
+    select 1
+    from public.messages as existing_message
+    where existing_message.sender_id = (select auth.uid())
+      and existing_message.receiver_id = v_owner_auth_id::text
+      and (
+        existing_message.content ~ (
+          '"type"[[:space:]]*:[[:space:]]*"listing_interest"'
+        )
+        and existing_message.content ~ (
+          '"item_id"[[:space:]]*:[[:space:]]*' || v_item.id::text || '([^0-9]|$)'
+        )
+        or existing_message.content ~ (
+          'Listing ID:[[:space:]]*' || v_item.id::text || '([^0-9]|$)'
+        )
+      )
+  ) then
+    insert into public.item_interest_shares (sender_id, item_id)
+    values ((select auth.uid()), v_item.id)
+    on conflict (sender_id, item_id) do nothing;
+    return;
+  end if;
+
   insert into public.item_interest_shares (sender_id, item_id)
   values ((select auth.uid()), v_item.id)
   on conflict (sender_id, item_id) do nothing;
@@ -264,7 +287,8 @@ begin
       'title', v_item.title,
       'category', v_item.category,
       'price_per_day', v_item.price_per_day,
-      'image_path', v_item.image_path
+      'image_path', v_item.image_path,
+      'owner_auth_id', v_owner_auth_id
     )::text
   )
   returning * into v_message;

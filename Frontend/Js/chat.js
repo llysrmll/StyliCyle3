@@ -96,6 +96,33 @@ function isCurrentConversation(message) {
     (message.sender_id === currentReceiver && message.receiver_id === currentUserId);
 }
 
+function parseListingMessage(message) {
+  if (!message) return null;
+  try {
+    const parsed = JSON.parse(message.content);
+    return parsed?.type === "listing_interest" ? parsed : null;
+  } catch {
+    const match = String(message.content).match(/I'm interested in this listing:\s*([^\r\n]+)[\s\S]*?Listing ID:\s*(\d+)/i);
+    return match ? { title: match[1], item_id: match[2] } : null;
+  }
+}
+
+function getListingDetails(message) {
+  const details = parseListingMessage(message);
+  return message?.sender_id === currentUserId && String(details?.item_id) === currentItemId
+    ? details
+    : null;
+}
+
+function syncListingShareState() {
+  if (!shareItemButton || !currentItemId) return;
+  if (![...currentMessages.values()].some((message) => getListingDetails(message))) return;
+  shareItemButton.dataset.sent = "true";
+  shareItemButton.disabled = true;
+  shareItemButton.textContent = "Item already sent";
+  setChatStatus("You have already sent this listing to its vendor.");
+}
+
 function renderMessages() {
   if (!chatWindow) return;
   const messages = [...currentMessages.values()].sort(
@@ -142,6 +169,18 @@ function renderMessages() {
 function addMessage(message) {
   if (!message?.id || !isCurrentConversation(message)) return;
   currentMessages.set(message.id, message);
+  const listing = parseListingMessage(message);
+  if (listing && !currentItemTitle) {
+    currentItemTitle = listing.title || "this item";
+    currentItemId = String(listing.item_id);
+    currentItemPrice = listing.price_per_day == null ? "" : String(listing.price_per_day);
+    currentItemCategory = listing.category || "";
+    const canResend = message.sender_id === currentUserId;
+    if (canResend) listingReceiver = currentReceiver;
+    updateHeader(currentContactName);
+    updateShareItemButton(canResend && isUuid(currentReceiver) && currentReceiver !== currentUserId);
+    syncListingShareState();
+  }
   renderMessages();
 }
 
@@ -179,9 +218,7 @@ function updateHeader(name, context = "Conversation") {
   if (chatPartnerContext) chatPartnerContext.textContent = currentItemTitle ? `Regarding ${currentItemTitle}` : context;
   if (viewProfileButton) {
     viewProfileButton.hidden = !isUuid(currentReceiver);
-    viewProfileButton.onclick = () => {
-      window.location.href = `/HTML/profile.html?user_id=${encodeURIComponent(currentReceiver)}`;
-    };
+    viewProfileButton.href = `/HTML/profile.html?profile_id=${encodeURIComponent(currentReceiver)}`;
   }
 }
 
@@ -227,7 +264,26 @@ async function loadMessages(receiverId) {
     if (isCurrentConversation(message)) currentMessages.set(message.id, message);
   }
 
+  if (!currentItemTitle) {
+    const latestListingMessage = [...currentMessages.values()]
+      .sort((first, second) => new Date(second.created_at) - new Date(first.created_at))
+      .map((message) => ({ message, listing: parseListingMessage(message) }))
+      .filter((entry) => entry.listing)
+      .find(Boolean);
+    if (latestListingMessage) {
+      const { message, listing } = latestListingMessage;
+      currentItemTitle = listing.title || "this item";
+      currentItemId = String(listing.item_id);
+      currentItemPrice = listing.price_per_day == null ? "" : String(listing.price_per_day);
+      currentItemCategory = listing.category || "";
+      const canResend = message.sender_id === currentUserId;
+      if (canResend) listingReceiver = receiverId;
+      updateHeader(currentContactName);
+      updateShareItemButton(canResend && isUuid(receiverId) && receiverId !== currentUserId);
+    }
+  }
   renderMessages();
+  syncListingShareState();
   setChatStatus(currentMessages.size ? "" : "No messages yet. Start the conversation.");
 }
 
@@ -322,7 +378,7 @@ async function selectContact(contact) {
     isUuid(contact.id) &&
     contact.id !== currentUserId
   ));
-  updateHeader(contact.name, contact.id === "admin" ? "StyliCycle Support" : "Vendor");
+  updateHeader(contact.name, contact.id === "admin" ? "StyliCycle Support" : "Conversation");
   renderContacts();
   const params = new URLSearchParams(window.location.search);
   params.delete("partner_id");
@@ -384,7 +440,7 @@ async function initializeChat() {
   if (currentReceiver === "admin") {
     updateHeader("Admin Support", "StyliCycle Support");
   } else if (currentReceiver) {
-    updateHeader(currentContactName || requestedName || "Vendor", "Vendor");
+    updateHeader(currentContactName || requestedName || "Conversation", "Conversation");
   }
 
   await loadContacts();
@@ -394,7 +450,7 @@ async function initializeChat() {
     updateHeader(currentContactName, "StyliCycle Support");
     renderContacts();
   } else {
-    updateHeader(currentContactName || requestedName || "Vendor", currentReceiver === "admin" ? "StyliCycle Support" : "Vendor");
+    updateHeader(currentContactName || requestedName || "Conversation", currentReceiver === "admin" ? "StyliCycle Support" : "Conversation");
   }
 
   realtimeChannel = chatClient
@@ -437,6 +493,7 @@ async function initializeChat() {
       if (!insertedMessage) {
         shareItemButton.dataset.sent = "true";
         shareItemButton.textContent = "Item already sent";
+        shareItemButton.disabled = true;
         setChatStatus("You have already sent this listing to its vendor.");
         return;
       }

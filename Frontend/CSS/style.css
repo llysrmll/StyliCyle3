@@ -1691,6 +1691,7 @@ h1 {
 }
 
 .chat-action-button {
+  display: inline-block;
   border: none;
   border-radius: 999px;
   background: #ffffff;
@@ -1699,6 +1700,7 @@ h1 {
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(46, 107, 63, 0.12);
+  text-decoration: none;
 }
 
 .chat-action-button:hover {

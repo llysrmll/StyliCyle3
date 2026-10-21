@@ -40,7 +40,11 @@ function renderProfile(profile) {
   setText("profileName", displayName(profile));
   setText("profileBusiness", profile.business_name, "Business name not provided");
   setText("profilePhone", profile.phone, "Phone not provided");
-  setText("profileEmail", profile.email || currentAuthUser?.email, "Email unavailable");
+  setText(
+    "profileEmail",
+    profile.email || (isOwnProfile ? currentAuthUser?.email : ""),
+    isOwnProfile ? "Email unavailable" : "Contact via chat"
+  );
   setText("profileBio", profile.bio, "No bio added yet.");
   setText("profileLocation", profile.location);
   setText("profileSpecialty", profile.specialty);
@@ -97,8 +101,9 @@ async function loadProfile() {
   }
   currentAuthUser = authResult.user;
 
-  const targetUserId = new URLSearchParams(window.location.search).get("user_id");
-  if (targetUserId && targetUserId !== currentAuthUser.id) {
+  const params = new URLSearchParams(window.location.search);
+  const targetUserId = params.get("profile_id") || params.get("user_id");
+  if (targetUserId) {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUserId)) {
       throw new Error("The requested profile ID is invalid.");
     }
