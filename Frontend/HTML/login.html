@@ -3,311 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create User Account - StyliCycle</title>
+  <title>StyliCycle - Login</title>
+  
+  <!-- Fixed absolute path for CSS -->
+  <link rel="stylesheet" href="/CSS/style.css">
+  
   <style>
-    /* Base reset */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body.auth-page {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f4f5;
-      color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .top-nav {
-      display: none;
-    }
-
-    .container {
-      background-color: #ffffff;
-      width: 100%;
-      max-width: 500px;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .auth-header h2 {
-      font-size: 28px;
-      margin-bottom: 10px;
-      color: #111;
-    }
-
-    .auth-header p {
-      font-size: 14px;
-      color: #666;
-      line-height: 1.5;
-    }
-
-    #registerForm {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="email"],
-    input[type="password"] {
-      width: 100%;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 15px;
-      transition: border-color 0.2s;
-      background-color: #fff;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #007bff;
-    }
-
+    /* ==========================================
+       Password Toggle Styling
+       ========================================== */
     .password-input-wrap {
       position: relative;
+      display: flex;
+      align-items: center;
       width: 100%;
     }
 
+    /* Add padding to the right so text doesn't overlap the button */
     .password-input-wrap input {
-      padding-right: 70px;
+      width: 100%;
+      padding-right: 70px; /* Space for the button */
     }
 
+    /* Style the button to sit nicely inside the input */
     .password-toggle {
       position: absolute;
+      right: 12px;
       top: 50%;
-      right: 10px;
       transform: translateY(-50%);
-      padding: 6px 10px;
-      border: 0;
       background: transparent;
-      color: #5d204c;
+      border: none;
+      color: #5d204c; /* Brand color */
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
     }
 
     .password-toggle:hover {
-      background-color: rgba(93, 32, 76, 0.08);
+      background-color: rgba(93, 32, 76, 0.08); /* Subtle hover effect */
+      color: #432b38;
     }
 
-    .password-toggle:focus-visible {
-      outline: 2px solid #007bff;
-      outline-offset: 2px;
-      border-radius: 3px;
-    }
-
-    .terms-section {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-top: 10px;
-    }
-
-    .terms-box {
-      background-color: #fafafa;
-      border: 1px solid #eee;
-      border-radius: 6px;
-      padding: 15px;
-      max-height: 180px;
-      overflow-y: auto;
-      font-size: 13px;
-      color: #555;
-      line-height: 1.6;
-    }
-
-    .terms-box h3 {
-      font-size: 15px;
-      margin-bottom: 10px;
-      color: #333;
-    }
-
-    .terms-box ol {
-      padding-left: 20px;
-    }
-
-    .terms-box li {
-      margin-bottom: 8px;
-    }
-
-    .terms-checkbox {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .terms-checkbox input {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-
-    button {
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .primary-button {
-      background-color: #007bff;
-      color: white;
-      margin-top: 10px;
-    }
-
-    .primary-button:hover {
-      background-color: #0056b3;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 5px;
-    }
-
-    .secondary-button {
-      background-color: #f0f0f0;
-      color: #333;
-      flex: 1;
-    }
-
-    .secondary-button:hover {
-      background-color: #e0e0e0;
-    }
-
-    p a {
-      color: #007bff;
-      text-decoration: none;
-      font-size: 14px;
-      display: block;
-      text-align: center;
-      margin-top: 15px;
-    }
-
-    p a:hover {
-      text-decoration: underline;
-    }
-
-    #twoFactorSetup {
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-    }
-
-    #twoFactorSetup h3 {
-      margin-bottom: 10px;
-      font-size: 18px;
-    }
-
-    #twoFactorSetup p {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 15px;
-    }
-
-    #twoFactorSetup input {
-      margin-bottom: 15px;
-    }
-
-    #twoFactorSetup button {
-      width: 100%;
-      margin-bottom: 10px;
+    .password-toggle:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(93, 32, 76, 0.3);
     }
   </style>
 </head>
-<body class="auth-page">
-  <nav class="top-nav"></nav>
-  
-  <div class="container">
-    <div class="auth-header">
-      <h2>Create Account</h2>
-      <p>Set up your partnership profile and start listing rentals with confidence.</p>
-    </div>
-    
-    <form id="registerForm">
-      <!-- Hidden input to define role -->
-      <input type="hidden" id="role" value="user">
-      
-      <input type="text" id="firstName" placeholder="First Name" required>
-      <input type="text" id="middleName" placeholder="Middle Name">
-      <input type="text" id="lastName" placeholder="Last Name" required>
-      <input type="number" id="age" placeholder="Age" required>
-      <input type="email" id="email" placeholder="Email" required>
-      
-      <!-- Password Field -->
-      <div class="password-input-wrap">
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="button" class="password-toggle" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
-      </div>
-      
-      <!-- Confirm Password Field -->
-      <div class="password-input-wrap">
-        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
-        <button type="button" class="password-toggle" aria-controls="confirmPassword" aria-label="Show confirm password" aria-pressed="false">Show</button>
-      </div>
-      
-      <div class="terms-section">
-        <div class="terms-box">
-          <h3>Terms & Conditions</h3>
-          <ol>
-            <li>By accessing or using the StyliCycle platform, you agree to comply with these Terms and Conditions.</li>
-            <li>Users must provide accurate information when creating an account and keep login credentials confidential.</li>
-            <li>Items must be safe, accurately described, and rented through the platform’s secure system.</li>
-            <li>Illegal, hazardous, or counterfeit items are prohibited and abuse may lead to account suspension.</li>
-            <li>Payments are processed securely; refunds follow platform policies and StyliCycle may mediate disputes.</li>
-            <li>StyliCycle provides the platform “as is” and is not liable for item condition or safety.</li>
-            <li>Personal data is processed under applicable privacy laws and only to facilitate transactions and services.</li>
-            <li>StyliCycle may suspend or terminate accounts that violate these Terms; users may delete accounts anytime.</li>
-          </ol>
+<body class="auth-login-page">
+  <div class="auth-shell">
+    <aside class="auth-visual" aria-label="Wedding gown showcase"></aside>
+
+    <main class="auth-panel">
+      <div class="auth-card">
+        <div class="brand-row">
+          <div class="brand-mark">K</div>
+          <div class="brand-name">StyliCycle</div>
         </div>
-        <label class="terms-checkbox"><input type="checkbox" id="agreeTermsSignup"> I agree to the Terms and Conditions</label>
+
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in to rent, list, and manage your event wardrobe.</p>
+
+        <form id="loginForm">
+          <label class="field-group">
+            <span>Email</span>
+            <input type="email" id="email" placeholder="you@example.com" required>
+          </label>
+
+          <label class="field-group">
+            <span>Password</span>
+            <div class="password-input-wrap">
+              <input type="password" id="password" placeholder="Your password" required>
+              <button type="button" class="password-toggle" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+          </label>
+
+          <input type="checkbox" id="agreeTermsLogin" class="sr-only" checked>
+
+          <button type="submit" class="primary-button">Continue</button>
+        </form>
+
+        <p class="signup-link">
+          New to StyliCycle? <a href="signup.html">Create an account</a>
+        </p>
       </div>
-      
-      <button type="submit" class="primary-button">Register</button>
-      
-      <div class="form-actions">
-        <!-- Updated to point to login.html -->
-        <button type="button" class="secondary-button" onclick="location.href='login.html'">Back to Login</button>
-      </div>
-      <!-- Updated to point to login.html -->
-      <p><a href="login.html">Already have an account? Log in</a></p>
-      
-      <!-- New link to Admin Signup -->
-      <p><a href="admin_signup.html" style="color: #666; margin-top: 5px;">Are you an administrator? Sign up here.</a></p>
-    </form>
-    
-    <div id="twoFactorSetup" style="display: none;">
-      <h3>Two-Factor Authentication Setup</h3>
-      <p>A verification code has been sent to your email. Please enter it below to complete registration.</p>
-      <input type="text" id="twoFactorCode" placeholder="Enter 6-digit code" maxlength="6" required>
-      <button id="verifyCodeBtn" class="primary-button">Verify Code</button>
-      <button id="resendCodeBtn" class="secondary-button">Resend Code</button>
-    </div>
+    </main>
   </div>
 
-  <!-- Supabase Scripts (Absolute paths) -->
+  <!-- Supabase & Auth Scripts (Fixed absolute paths) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/Js/supabase-client.js"></script>
   <script src="/Js/auth.js"></script>
@@ -315,28 +103,22 @@
   <!-- Password Toggle Logic -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Select ALL toggle buttons on the page
-      const toggleButtons = document.querySelectorAll('.password-toggle');
+      const toggleBtn = document.querySelector('.password-toggle');
+      const passwordInput = document.getElementById('password');
 
-      toggleButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          // Find the input associated with this specific button using aria-controls
-          const inputId = button.getAttribute('aria-controls');
-          const input = document.getElementById(inputId);
-
-          if (input) {
-            const isPassword = input.type === 'password';
-            
-            // Toggle type
-            input.type = isPassword ? 'text' : 'password';
-            
-            // Toggle text and accessibility attributes
-            button.textContent = isPassword ? 'Hide' : 'Show';
-            button.setAttribute('aria-pressed', isPassword);
-            button.setAttribute('aria-label', isPassword ? `Hide ${input.placeholder}` : `Show ${input.placeholder}`);
-          }
+      if (toggleBtn && passwordInput) {
+        toggleBtn.addEventListener('click', () => {
+          const isPassword = passwordInput.type === 'password';
+          
+          // Toggle input type
+          passwordInput.type = isPassword ? 'text' : 'password';
+          
+          // Update button text and accessibility attributes
+          toggleBtn.textContent = isPassword ? 'Hide' : 'Show';
+          toggleBtn.setAttribute('aria-pressed', isPassword);
+          toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
         });
-      });
+      }
     });
   </script>
 </body>
