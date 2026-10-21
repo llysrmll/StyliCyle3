@@ -91,13 +91,21 @@
       top: 50%;
       right: 10px;
       transform: translateY(-50%);
-      padding: 6px;
+      padding: 6px 10px;
       border: 0;
       background: transparent;
       color: #5d204c;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .password-toggle:hover {
+      background-color: rgba(93, 32, 76, 0.08);
     }
 
     .password-toggle:focus-visible {
@@ -247,10 +255,14 @@
       <input type="text" id="lastName" placeholder="Last Name" required>
       <input type="number" id="age" placeholder="Age" required>
       <input type="email" id="email" placeholder="Email" required>
+      
+      <!-- Password Field -->
       <div class="password-input-wrap">
         <input type="password" id="password" placeholder="Password" required>
         <button type="button" class="password-toggle" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
       </div>
+      
+      <!-- Confirm Password Field -->
       <div class="password-input-wrap">
         <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
         <button type="button" class="password-toggle" aria-controls="confirmPassword" aria-label="Show confirm password" aria-pressed="false">Show</button>
@@ -276,9 +288,11 @@
       <button type="submit" class="primary-button">Register</button>
       
       <div class="form-actions">
-        <button type="button" class="secondary-button" onclick="location.href='index.html'">Back to Login</button>
+        <!-- Updated to point to login.html -->
+        <button type="button" class="secondary-button" onclick="location.href='login.html'">Back to Login</button>
       </div>
-      <p><a href="index.html">Already have an account? Log in</a></p>
+      <!-- Updated to point to login.html -->
+      <p><a href="login.html">Already have an account? Log in</a></p>
       
       <!-- New link to Admin Signup -->
       <p><a href="admin_signup.html" style="color: #666; margin-top: 5px;">Are you an administrator? Sign up here.</a></p>
@@ -292,8 +306,38 @@
       <button id="resendCodeBtn" class="secondary-button">Resend Code</button>
     </div>
   </div>
+
+  <!-- Supabase Scripts (Absolute paths) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../Js/supabase-client.js"></script>
-  <script src="../Js/auth.js"></script>
+  <script src="/Js/supabase-client.js"></script>
+  <script src="/Js/auth.js"></script>
+
+  <!-- Password Toggle Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Select ALL toggle buttons on the page
+      const toggleButtons = document.querySelectorAll('.password-toggle');
+
+      toggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Find the input associated with this specific button using aria-controls
+          const inputId = button.getAttribute('aria-controls');
+          const input = document.getElementById(inputId);
+
+          if (input) {
+            const isPassword = input.type === 'password';
+            
+            // Toggle type
+            input.type = isPassword ? 'text' : 'password';
+            
+            // Toggle text and accessibility attributes
+            button.textContent = isPassword ? 'Hide' : 'Show';
+            button.setAttribute('aria-pressed', isPassword);
+            button.setAttribute('aria-label', isPassword ? `Hide ${input.placeholder}` : `Show ${input.placeholder}`);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
