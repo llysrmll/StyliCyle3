@@ -1799,8 +1799,8 @@ h1 {
 }
 
 .chat-form {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
   align-items: center;
   gap: 12px;
   padding: 18px 24px;
@@ -1809,7 +1809,10 @@ h1 {
 }
 
 .chat-form input {
-  flex: 1 1 auto;
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  box-sizing: border-box;
   min-width: 0;
   padding: 16px 20px;
   border: none;
@@ -1827,7 +1830,8 @@ h1 {
 }
 
 .chat-form button {
-  flex: 0 0 52px;
+  grid-column: 2;
+  grid-row: 1;
   width: 52px;
   height: 52px;
   display: grid;
@@ -1843,11 +1847,46 @@ h1 {
 }
 
 .chat-form #shareItemButton {
-  flex: 0 0 auto;
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  z-index: 1;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.chat-form.has-item-share {
+  grid-template-columns: max-content minmax(0, 1fr) 52px;
+}
+
+.chat-form.has-item-share input {
+  grid-column: 2;
+}
+
+.chat-form.has-item-share #shareItemButton {
+  grid-column: 1;
+}
+
+.chat-form.has-item-share button[type="submit"] {
+  grid-column: 3;
 }
 
 .chat-form button:hover {
   background: #255a34;
+}
+
+#viewProfileButton[hidden],
+#profileMessageBtn[hidden] {
+  display: none;
+}
+
+.message-listing-image {
+  display: block;
+  max-width: min(280px, 100%);
+  max-height: 220px;
+  margin-top: 10px;
+  border-radius: 12px;
+  object-fit: cover;
 }
 
 .toast-banner {

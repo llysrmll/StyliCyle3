@@ -8,6 +8,7 @@ const editStatus = document.getElementById("profileEditStatus");
 const avatarPlaceholder = "/Images/avatar-placeholder.svg";
 let currentAuthUser = null;
 let currentProfile = null;
+let isOwnProfile = true;
 
 function setText(id, value, fallback = "Not provided") {
   const element = document.getElementById(id);
@@ -29,8 +30,8 @@ function formatMemberSince(value) {
 function displayName(profile) {
   return profile.full_name ||
     [profile.first_name, profile.last_name].filter(Boolean).join(" ") ||
-    currentAuthUser?.user_metadata?.full_name ||
-    currentAuthUser?.email ||
+    profile.business_name ||
+    (isOwnProfile ? currentAuthUser?.user_metadata?.full_name || currentAuthUser?.email : "") ||
     "StyliCycle Member";
 }
 
@@ -95,6 +96,40 @@ async function loadProfile() {
     return;
   }
   currentAuthUser = authResult.user;
+
+  const targetUserId = new URLSearchParams(window.location.search).get("user_id");
+  if (targetUserId && targetUserId !== currentAuthUser.id) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUserId)) {
+      throw new Error("The requested profile ID is invalid.");
+    }
+    isOwnProfile = false;
+    document.getElementById("profileEditBtn").hidden = true;
+    document.getElementById("profileAdminChatBtn").hidden = true;
+    document.getElementById("profileManageRentalsBtn").hidden = true;
+    document.getElementById("profileMessageBtn").hidden = false;
+    editModal.hidden = true;
+
+    const { data: profileRows, error: profileError } = await profileClient.rpc("chat_partner_profile", {
+      p_auth_user_id: targetUserId
+    });
+    if (profileError) throw profileError;
+    const profile = Array.isArray(profileRows) ? profileRows[0] : profileRows;
+    if (!profile) {
+      throw new Error("This profile is not available to your account.");
+    }
+
+    renderProfile(profile);
+    setText("profileEmail", "Contact via chat");
+    document.getElementById("profileMessageBtn").href =
+      `/HTML/chatbox.html?receiver_id=${encodeURIComponent(targetUserId)}&name=${encodeURIComponent(displayName(profile))}`;
+    const { data: items, error: itemsError } = await profileClient.rpc("chat_partner_portfolio", {
+      p_auth_user_id: targetUserId
+    });
+    if (itemsError) throw itemsError;
+    renderPortfolio(items || []);
+    if (profileStatus) profileStatus.textContent = "";
+    return;
+  }
 
   const { data: publicUserId, error: mappingError } = await profileClient.rpc("current_public_user_id");
   if (mappingError) throw mappingError;

@@ -8,6 +8,7 @@ const chatPartnersStatus = document.getElementById("chatPartnersStatus");
 const chatPartnerName = document.getElementById("chatPartnerName");
 const chatPartnerContext = document.getElementById("chatPartnerContext");
 const chatAvatar = document.getElementById("chatAvatar");
+const viewProfileButton = document.getElementById("viewProfileButton");
 const chatParams = new URLSearchParams(window.location.search);
 const requestedReceiver = chatParams.get("receiver_id") || chatParams.get("partner") || "";
 const requestedOwnerId = chatParams.get("partner_id") || "";
@@ -32,6 +33,37 @@ let loadSequence = 0;
 const currentMessages = new Map();
 const contactDetails = new Map();
 const adminUserIds = new Set();
+
+function resolveListingImageUrl(imagePath) {
+  const value = String(imagePath || "").trim();
+  if (!value) return "";
+  if (/^https?:/i.test(value)) {
+    try {
+      const candidate = new URL(value);
+      const storageImageUrl = new URL(
+        chatClient.storage.from("item-images").getPublicUrl("image-check").data.publicUrl
+      );
+      if (candidate.origin === window.location.origin) return candidate.href;
+      if (
+        candidate.origin === storageImageUrl.origin &&
+        candidate.pathname.includes("/storage/v1/object/public/item-images/")
+      ) {
+        return candidate.href;
+      }
+      return "";
+    } catch {
+      return "";
+    }
+  }
+  if (/^(?:\/)?Frontend\/Images\//i.test(value)) {
+    return `/Images/${value.replace(/^(?:\/)?Frontend\/Images\//i, "").split("/").map(encodeURIComponent).join("/")}`;
+  }
+  if (/^Images\//i.test(value)) {
+    return `/${value.split("/").map(encodeURIComponent).join("/")}`;
+  }
+  if (value.startsWith("/")) return value;
+  return chatClient.storage.from("item-images").getPublicUrl(value).data.publicUrl;
+}
 
 function setChatStatus(message) {
   if (chatStatus) chatStatus.textContent = message;
@@ -76,8 +108,32 @@ function renderMessages() {
     element.className = `message ${message.sender_id === currentUserId ? "user" : "bot"}`;
     const text = document.createElement("div");
     text.className = "message-text";
-    text.textContent = message.content;
+    let content = message.content;
+    let listing = null;
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed?.type === "listing_interest") {
+        listing = parsed;
+        content = `I'm interested in this listing:\n${parsed.title || "Rental item"}\nListing ID: ${parsed.item_id}`;
+        if (parsed.category) content += `\nCategory: ${parsed.category}`;
+        if (parsed.price_per_day != null) content += `\nPrice per day: ₱${parsed.price_per_day}`;
+      }
+    } catch {
+      // Regular messages are plain text.
+    }
+    text.textContent = content;
     element.appendChild(text);
+    if (listing?.image_path) {
+      const imageUrl = resolveListingImageUrl(listing.image_path);
+      if (imageUrl) {
+        const image = document.createElement("img");
+        image.className = "message-listing-image";
+        image.src = imageUrl;
+        image.alt = listing.title ? `Listing photo: ${listing.title}` : "Listing photo";
+        image.loading = "lazy";
+        element.appendChild(image);
+      }
+    }
     chatWindow.appendChild(element);
   }
   chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -121,6 +177,22 @@ function updateHeader(name, context = "Conversation") {
   if (chatPartnerName) chatPartnerName.textContent = currentContactName;
   if (chatAvatar) chatAvatar.textContent = getInitials(currentContactName);
   if (chatPartnerContext) chatPartnerContext.textContent = currentItemTitle ? `Regarding ${currentItemTitle}` : context;
+  if (viewProfileButton) {
+    viewProfileButton.hidden = !isUuid(currentReceiver);
+    viewProfileButton.onclick = () => {
+      window.location.href = `/HTML/profile.html?user_id=${encodeURIComponent(currentReceiver)}`;
+    };
+  }
+}
+
+function updateShareItemButton(visible) {
+  if (!shareItemButton) return;
+  shareItemButton.hidden = !visible;
+  chatForm?.classList.toggle("has-item-share", visible);
+  if (visible && shareItemButton.dataset.sent !== "true") {
+    shareItemButton.disabled = false;
+    shareItemButton.textContent = "Send this item";
+  }
 }
 
 async function loadMessages(receiverId) {
@@ -244,9 +316,12 @@ async function selectContact(contact) {
   currentItemId = contact.id === listingReceiver ? itemId : "";
   currentItemPrice = contact.id === listingReceiver ? itemPrice : "";
   currentItemCategory = contact.id === listingReceiver ? itemCategory : "";
-  if (shareItemButton) {
-    shareItemButton.hidden = !currentItemId || !/^\d+$/.test(currentItemId) || contact.id === "admin";
-  }
+  updateShareItemButton(Boolean(
+    currentItemId &&
+    /^\d+$/.test(currentItemId) &&
+    isUuid(contact.id) &&
+    contact.id !== currentUserId
+  ));
   updateHeader(contact.name, contact.id === "admin" ? "StyliCycle Support" : "Vendor");
   renderContacts();
   const params = new URLSearchParams(window.location.search);
@@ -299,14 +374,12 @@ async function initializeChat() {
     listingReceiver = requestedReceiver;
   }
 
-  if (shareItemButton) {
-    shareItemButton.hidden = !(
-      currentItemId &&
-      /^\d+$/.test(currentItemId) &&
-      isUuid(currentReceiver) &&
-      currentReceiver !== currentUserId
-    );
-  }
+  updateShareItemButton(Boolean(
+    currentItemId &&
+    /^\d+$/.test(currentItemId) &&
+    isUuid(currentReceiver) &&
+    currentReceiver !== currentUserId
+  ));
 
   if (currentReceiver === "admin") {
     updateHeader("Admin Support", "StyliCycle Support");
@@ -356,26 +429,26 @@ async function initializeChat() {
     }
     shareItemButton.disabled = true;
     try {
-      const itemMessage = [
-        "I'm interested in this listing:",
-        currentItemTitle || "Rental item",
-        `Listing ID: ${currentItemId}`,
-        currentItemCategory ? `Category: ${currentItemCategory}` : "",
-        currentItemPrice ? `Price per day: ₱${currentItemPrice}` : ""
-      ].filter(Boolean).join("\n");
-      const { data: insertedMessage, error: insertError } = await chatClient
-        .from("messages")
-        .insert({ sender_id: currentUserId, receiver_id: currentReceiver, content: itemMessage })
-        .select("id, sender_id, receiver_id, content, created_at")
-        .single();
+      const { data, error: insertError } = await chatClient.rpc("send_listing_interest", {
+        p_item_id: Number(currentItemId)
+      });
       if (insertError) throw insertError;
+      const insertedMessage = Array.isArray(data) ? data[0] : data;
+      if (!insertedMessage) {
+        shareItemButton.dataset.sent = "true";
+        shareItemButton.textContent = "Item already sent";
+        setChatStatus("You have already sent this listing to its vendor.");
+        return;
+      }
+      shareItemButton.dataset.sent = "true";
+      shareItemButton.textContent = "Item sent";
       addMessage(insertedMessage);
       setChatStatus("Listing sent to the vendor.");
       await loadContacts();
     } catch (error) {
       setChatStatus(`Could not send the listing: ${error.message || String(error)}`);
     } finally {
-      shareItemButton.disabled = false;
+      shareItemButton.disabled = shareItemButton.dataset.sent === "true";
     }
   });
 
