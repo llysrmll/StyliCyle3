@@ -45,6 +45,7 @@ For an existing Vercel/Supabase database, run these scripts in the Supabase SQL 
 6. `profile_setup.sql` (if using vendor profiles)
 7. `admin_chat_setup.sql` (if using the searchable admin inbox)
 8. `vendor_chat_setup.sql` (if using rental-to-vendor chat)
+9. `rental_booking_setup.sql` (if using agreed rental delivery bookings)
 
 `app_features.sql` links Auth UUIDs to the bigint `public.users.id` values (matching existing rows by email where unambiguous), creates a legacy profile row for new email-based Auth users without copying passwords, and provides the `current_public_user_id()` RPC used by listings and deliveries. It also enables safe client access to the legacy users table, adds owner-based item/delivery rules, creates the public `item-images` bucket and its read/upload/owner-delete policies, creates the private notifications table and message/delivery triggers, and adds notifications to Realtime.
 
@@ -59,6 +60,8 @@ Run `profile_setup.sql` after `app_features.sql` to add vendor profile fields, c
 Run `admin_chat_setup.sql` after `auth_profiles.sql` and `messages.sql` to allow the admin inbox to read messages when either `app_metadata.is_admin` or `app_metadata.role` is set, and to add a protected name/email user search for starting new conversations. Admins must sign out and back in after changing their app metadata so their access token includes the updated role. Existing legacy item image paths such as `Frontend/Images/evening.jpg` are normalized by the rental page to deployed `/Images/...` URLs.
 
 Run `vendor_chat_setup.sql` after `app_features.sql` and `profile_setup.sql` to enable searchable rental results with safe vendor UUID/name fields, resolve listing links by bigint owner ID, provide names and scoped profiles for direct-message contacts, and load vendor portfolios without exposing `public.users`. It also adds a server-enforced one-time item-interest share per customer/listing, backfills matching legacy item-interest messages, returns the original message for repeat attempts so it remains visible in chat, and includes the listing photo in new item-share messages. The `messages` table stores `receiver_id` as text; direct vendor chats store the UUID's text form, while the support chat uses `admin`.
+
+Run `rental_booking_setup.sql` after `vendor_chat_setup.sql` to add the renter/vendor booking handshake. A customer who has sent the listing proposes rental dates, pickup and delivery addresses, and a pickup time in the vendor chat. The listing owner must accept or decline that exact proposal. Only acceptance creates a delivery record; row-level security lets the renter and listing owner read that booking, while unrelated users cannot. Confirmed date ranges cannot overlap for the same listing. The delivery page uses the same RLS-protected delivery list and displays these agreed bookings to both participants.
 
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 

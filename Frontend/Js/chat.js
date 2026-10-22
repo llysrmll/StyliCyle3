@@ -9,6 +9,10 @@ const chatPartnerName = document.getElementById("chatPartnerName");
 const chatPartnerContext = document.getElementById("chatPartnerContext");
 const chatAvatar = document.getElementById("chatAvatar");
 const viewProfileButton = document.getElementById("viewProfileButton");
+const proposeDeliveryButton = document.getElementById("proposeDeliveryButton");
+const deliveryProposalDialog = document.getElementById("deliveryProposalDialog");
+const deliveryProposalForm = document.getElementById("deliveryProposalForm");
+const deliveryProposalStatus = document.getElementById("deliveryProposalStatus");
 const chatParams = new URLSearchParams(window.location.search);
 const requestedReceiver = chatParams.get("receiver_id") || chatParams.get("partner") || "";
 const requestedOwnerId = chatParams.get("partner_id") || "";
@@ -107,6 +111,53 @@ function parseListingMessage(message) {
   }
 }
 
+function parseMessagePayload(message) {
+  try {
+    return JSON.parse(message.content);
+  } catch {
+    return null;
+  }
+}
+
+function hasSharedCurrentListing() {
+  if (!currentItemId) return false;
+  return [...currentMessages.values()].some((message) => {
+    const listing = parseListingMessage(message);
+    return message.sender_id === currentUserId && String(listing?.item_id) === currentItemId;
+  });
+}
+
+function updateBookingProposalButton() {
+  if (!proposeDeliveryButton) return;
+  const shouldShow = isUuid(currentReceiver) &&
+    currentReceiver !== currentUserId &&
+    currentItemId &&
+    /^\d+$/.test(currentItemId) &&
+    hasSharedCurrentListing();
+  proposeDeliveryButton.hidden = !shouldShow;
+  if (!shouldShow) return;
+
+  const proposals = [...currentMessages.values()]
+    .filter((message) => message.sender_id === currentUserId)
+    .map((message) => ({ message, payload: parseMessagePayload(message) }))
+    .filter(({ payload }) => payload?.type === "rental_booking_proposal" &&
+      String(payload.item_id) === currentItemId)
+    .sort((first, second) =>
+      new Date(second.message.created_at) - new Date(first.message.created_at)
+    );
+  const latestProposal = proposals[0]?.payload;
+  if (latestProposal?.status === "pending_vendor") {
+    proposeDeliveryButton.disabled = true;
+    proposeDeliveryButton.textContent = "Awaiting vendor";
+  } else if (latestProposal?.status === "confirmed") {
+    proposeDeliveryButton.disabled = true;
+    proposeDeliveryButton.textContent = "Delivery confirmed";
+  } else {
+    proposeDeliveryButton.disabled = false;
+    proposeDeliveryButton.textContent = "Propose delivery";
+  }
+}
+
 function getListingDetails(message) {
   const details = parseListingMessage(message);
   return message?.sender_id === currentUserId && String(details?.item_id) === currentItemId
@@ -137,16 +188,18 @@ function renderMessages() {
     text.className = "message-text";
     let content = message.content;
     let listing = null;
-    try {
-      const parsed = JSON.parse(content);
-      if (parsed?.type === "listing_interest") {
-        listing = parsed;
-        content = `I'm interested in this listing:\n${parsed.title || "Rental item"}\nListing ID: ${parsed.item_id}`;
-        if (parsed.category) content += `\nCategory: ${parsed.category}`;
-        if (parsed.price_per_day != null) content += `\nPrice per day: ₱${parsed.price_per_day}`;
-      }
-    } catch {
-      // Regular messages are plain text.
+    const payload = parseMessagePayload(message);
+    if (payload?.type === "listing_interest") {
+      listing = payload;
+      content = `I'm interested in this listing:\n${payload.title || "Rental item"}\nListing ID: ${payload.item_id}`;
+      if (payload.category) content += `\nCategory: ${payload.category}`;
+      if (payload.price_per_day != null) content += `\nPrice per day: ₱${payload.price_per_day}`;
+    } else if (payload?.type === "rental_booking_proposal") {
+      content = `Rental and delivery proposal for ${payload.item_title}.`;
+    } else if (payload?.type === "rental_booking_confirmed") {
+      content = `Delivery booking confirmed for ${payload.item_title}.`;
+    } else if (payload?.type === "rental_booking_declined") {
+      content = `The delivery proposal for ${payload.item_title} was declined.`;
     }
     text.textContent = content;
     element.appendChild(text);
@@ -160,6 +213,48 @@ function renderMessages() {
         image.loading = "lazy";
         element.appendChild(image);
       }
+    }
+    if (payload?.type === "rental_booking_proposal") {
+      const details = document.createElement("div");
+      details.className = "booking-message-details";
+      const rentalDays = Math.max(
+        1,
+        Math.floor((Date.parse(`${payload.rental_end}T00:00:00`) - Date.parse(`${payload.rental_start}T00:00:00`)) / 86400000) + 1
+      );
+      const detailLines = [
+        `${payload.rental_start} to ${payload.rental_end} (${rentalDays} day(s))`,
+        `Rental total: ₱${Number(payload.price_per_day || 0) * rentalDays}`,
+        `Pickup: ${payload.pickup_address}`,
+        `Delivery: ${payload.delivery_address}`,
+        `Delivery pickup: ${payload.pickup_time}`,
+        payload.notes ? `Notes: ${payload.notes}` : ""
+      ].filter(Boolean);
+      for (const line of detailLines) {
+        const detail = document.createElement("p");
+        detail.textContent = line;
+        details.appendChild(detail);
+      }
+      if (payload.status === "pending_vendor" && message.receiver_id === currentUserId) {
+        const actions = document.createElement("div");
+        actions.className = "booking-message-actions";
+        for (const [decision, label] of [["true", "Accept proposal"], ["false", "Decline"]]) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = label;
+          button.className = decision === "true" ? "booking-accept-button" : "booking-decline-button";
+          button.addEventListener("click", () => respondToBooking(payload.booking_id, decision === "true", button));
+          actions.appendChild(button);
+        }
+        details.appendChild(actions);
+      } else {
+        const status = document.createElement("strong");
+        status.className = "booking-message-status";
+        status.textContent = payload.status === "confirmed"
+          ? `Confirmed${payload.delivery_id ? ` · Delivery #${payload.delivery_id}` : ""}`
+          : payload.status === "declined" ? "Declined" : "Awaiting vendor confirmation";
+        details.appendChild(status);
+      }
+      element.appendChild(details);
     }
     chatWindow.appendChild(element);
   }
@@ -181,6 +276,7 @@ function addMessage(message) {
     updateShareItemButton(canResend && isUuid(currentReceiver) && currentReceiver !== currentUserId);
     syncListingShareState();
   }
+  updateBookingProposalButton();
   renderMessages();
 }
 
@@ -284,6 +380,7 @@ async function loadMessages(receiverId) {
   }
   renderMessages();
   syncListingShareState();
+  updateBookingProposalButton();
   setChatStatus(currentMessages.size ? "" : "No messages yet. Start the conversation.");
 }
 
@@ -396,6 +493,34 @@ async function selectContact(contact) {
   await loadMessages(contact.id);
 }
 
+async function respondToBooking(bookingId, accepted, button) {
+  if (!/^\d+$/.test(String(bookingId))) {
+    setChatStatus("This booking proposal has an invalid ID.");
+    return;
+  }
+  const buttons = button.closest(".booking-message-actions").querySelectorAll("button");
+  buttons.forEach((action) => { action.disabled = true; });
+  setChatStatus(accepted ? "Confirming delivery booking..." : "Declining proposal...");
+  try {
+    const { data, error } = await chatClient.rpc("respond_rental_delivery", {
+      p_booking_id: Number(bookingId),
+      p_accept: accepted
+    });
+    if (error) throw error;
+    const responseMessage = Array.isArray(data) ? data[0] : data;
+    if (!responseMessage) throw new Error("Supabase did not return the booking response.");
+    addMessage(responseMessage);
+    setChatStatus(accepted
+      ? "Booking confirmed. The delivery is now visible to both participants."
+      : "The proposal was declined.");
+    await loadMessages(currentReceiver);
+    await loadContacts();
+  } catch (error) {
+    setChatStatus(`Could not respond to booking: ${error.message || String(error)}`);
+    buttons.forEach((action) => { action.disabled = false; });
+  }
+}
+
 async function initializeChat() {
   if (!chatWindow || !chatForm || !chatInput) return;
   const { data, error } = await chatClient.auth.getUser();
@@ -469,6 +594,17 @@ async function initializeChat() {
         addMessage(message);
       }
     })
+    .on("postgres_changes", {
+      event: "UPDATE",
+      schema: "public",
+      table: "messages"
+    }, (payload) => {
+      const message = payload.new;
+      if (!isCurrentConversation(message) || !currentMessages.has(message.id)) return;
+      currentMessages.set(message.id, message);
+      renderMessages();
+      updateBookingProposalButton();
+    })
     .subscribe((status) => {
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         setChatStatus("Real-time connection failed. Check that messages is enabled in Supabase Realtime.");
@@ -476,6 +612,76 @@ async function initializeChat() {
     });
 
   await loadMessages(currentReceiver);
+
+  proposeDeliveryButton?.addEventListener("click", () => {
+    if (!hasSharedCurrentListing() || !currentItemId || !/^\d+$/.test(currentItemId)) {
+      setChatStatus("Send this item to its vendor before proposing a delivery.");
+      return;
+    }
+    const today = new Date();
+    const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+    const localDateTime = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    document.getElementById("bookingRentalStart").min = localDate;
+    document.getElementById("bookingRentalStart").value = localDate;
+    document.getElementById("bookingRentalEnd").min = localDate;
+    document.getElementById("bookingRentalEnd").value = localDate;
+    document.getElementById("bookingPickupTime").min = localDateTime;
+    document.getElementById("bookingPickupTime").value = "";
+    deliveryProposalStatus.textContent = "";
+    deliveryProposalDialog.showModal();
+  });
+
+  document.getElementById("bookingRentalStart")?.addEventListener("change", (event) => {
+    const rentalEnd = document.getElementById("bookingRentalEnd");
+    rentalEnd.min = event.target.value;
+    if (rentalEnd.value && rentalEnd.value < event.target.value) {
+      rentalEnd.value = event.target.value;
+    }
+  });
+
+  document.getElementById("deliveryProposalClose")?.addEventListener("click", () => deliveryProposalDialog.close());
+  document.getElementById("deliveryProposalCancel")?.addEventListener("click", () => deliveryProposalDialog.close());
+  deliveryProposalDialog?.addEventListener("click", (event) => {
+    if (event.target === deliveryProposalDialog) deliveryProposalDialog.close();
+  });
+
+  deliveryProposalForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!hasSharedCurrentListing() || !currentItemId || !/^\d+$/.test(currentItemId)) {
+      deliveryProposalStatus.textContent = "Send this item to its vendor before proposing a delivery.";
+      return;
+    }
+    const submitButton = deliveryProposalForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    deliveryProposalStatus.textContent = "Sending proposal...";
+    try {
+      const { data, error } = await chatClient.rpc("propose_rental_delivery", {
+        p_item_id: Number(currentItemId),
+        p_rental_start: document.getElementById("bookingRentalStart").value,
+        p_rental_end: document.getElementById("bookingRentalEnd").value,
+        p_pickup_address: document.getElementById("bookingPickupAddress").value.trim(),
+        p_delivery_address: document.getElementById("bookingDeliveryAddress").value.trim(),
+        p_pickup_time: document.getElementById("bookingPickupTime").value,
+        p_notes: document.getElementById("bookingNotes").value.trim() || null
+      });
+      if (error) throw error;
+      const proposalMessage = Array.isArray(data) ? data[0] : data;
+      if (!proposalMessage) throw new Error("Supabase did not return the booking proposal.");
+      addMessage(proposalMessage);
+      deliveryProposalDialog.close();
+      deliveryProposalForm.reset();
+      await loadMessages(currentReceiver);
+      setChatStatus("Proposal sent. The delivery will be scheduled after the vendor accepts.");
+    } catch (error) {
+      deliveryProposalStatus.textContent = `Could not send proposal: ${error.message || String(error)}`;
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
 
   shareItemButton?.addEventListener("click", async () => {
     if (!currentItemId || !/^\d+$/.test(currentItemId) ||

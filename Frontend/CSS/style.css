@@ -1891,6 +1891,77 @@ h1 {
   object-fit: cover;
 }
 
+.booking-dialog {
+  padding: 0;
+}
+
+.booking-explanation {
+  margin: 0;
+  color: #6b5c64;
+  line-height: 1.5;
+}
+
+.delivery-booking-note {
+  margin: 8px 0 14px;
+  color: #6b5c64;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.booking-message-details {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(95, 36, 73, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #432b38;
+}
+
+.booking-message-details p {
+  margin: 5px 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.booking-message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.booking-message-actions button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.booking-message-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.chat-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.booking-accept-button {
+  background: #2e6b3f;
+}
+
+.booking-decline-button {
+  background: #7c3949;
+}
+
+.booking-message-status {
+  display: block;
+  margin-top: 10px;
+}
+
 .toast-banner {
   position: fixed;
   left: 50%;

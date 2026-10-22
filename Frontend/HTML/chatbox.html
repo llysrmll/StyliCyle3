@@ -4,40 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messages - StyliCycle</title>
-  <link rel="stylesheet" href="/CSS/style.css?v=20261022-1">
-  
-  <!-- ADDED: Inline CSS to fix the chat input layout -->
-  <style>
-    /* Force the form to be a horizontal row */
-    .chat-form {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 10px !important;
-      width: 100%;
-      margin-top: 15px;
-    }
-
-    /* Make the input take up all available space without pushing the button down */
-    #chatMessageInput {
-      flex: 1 !important;
-      width: auto !important;
-      margin: 0 !important;
-    }
-
-    /* Ensure the green send button is round, doesn't shrink, and aligns perfectly */
-    .chat-form button[type="submit"] {
-      flex-shrink: 0;
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 0;
-      margin: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="/CSS/style.css?v=20261022-2">
 </head>
 <body data-auth-required="true">
   <nav class="top-nav">
@@ -74,6 +41,7 @@
           <span id="chatPartnerContext">Choose a contact to begin chatting</span>
         </div>
         <div class="chat-user-actions">
+          <button type="button" class="chat-action-button" id="proposeDeliveryButton" hidden>Propose delivery</button>
           <a class="chat-action-button" id="viewProfileButton" hidden>View Profile</a>
         </div>
       </div>
@@ -85,13 +53,50 @@
         <input id="chatMessageInput" type="text" maxlength="5000" placeholder="Type a message..." aria-label="Message" required>
         <button type="submit" aria-label="Send message">➤</button>
       </form>
-      
     </section>
   </main>
+  <dialog class="profile-edit-dialog booking-dialog" id="deliveryProposalDialog" aria-labelledby="deliveryProposalTitle">
+    <form id="deliveryProposalForm" class="profile-edit-form">
+      <div class="profile-edit-heading">
+        <h2 id="deliveryProposalTitle">Propose a rental and delivery</h2>
+        <button type="button" class="profile-dialog-close" id="deliveryProposalClose" aria-label="Close">×</button>
+      </div>
+      <p class="booking-explanation">Your proposal is sent to the listing owner. The delivery is scheduled only if they accept these terms.</p>
+      <label class="field-group">
+        <span>Rental starts</span>
+        <input type="date" id="bookingRentalStart" required>
+      </label>
+      <label class="field-group">
+        <span>Rental ends</span>
+        <input type="date" id="bookingRentalEnd" required>
+      </label>
+      <label class="field-group">
+        <span>Pickup address</span>
+        <input type="text" id="bookingPickupAddress" maxlength="500" required>
+      </label>
+      <label class="field-group">
+        <span>Delivery address</span>
+        <input type="text" id="bookingDeliveryAddress" maxlength="500" required>
+      </label>
+      <label class="field-group">
+        <span>Delivery pickup date and time</span>
+        <input type="datetime-local" id="bookingPickupTime" required>
+      </label>
+      <label class="field-group">
+        <span>Notes for the listing owner</span>
+        <textarea id="bookingNotes" maxlength="2000" placeholder="Optional"></textarea>
+      </label>
+      <p id="deliveryProposalStatus" class="profile-status" role="status" aria-live="polite"></p>
+      <div class="profile-edit-actions">
+        <button type="button" class="btn btn-outline" id="deliveryProposalCancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Send proposal</button>
+      </div>
+    </form>
+  </dialog>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/Js/supabase-client.js"></script>
   <script src="/Js/auth.js"></script>
   <script src="/Js/common.js"></script>
-  <script src="/Js/chat.js?v=20261022-1"></script>
+  <script src="/Js/chat.js?v=20261022-2"></script>
 </body>
 </html>
