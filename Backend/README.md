@@ -25,7 +25,7 @@ The static Vercel frontend uses Supabase Auth for signup, login, and persistent 
 
 Supabase may temporarily reject signup confirmation emails with HTTP 429 (`email rate limit exceeded`). Wait for the configured Auth email limit to reset, or configure a custom SMTP provider in Supabase Auth settings. Deleting a `public.users` row does not delete the Auth account or reset the email rate limit.
 
-Run `deliveries_rls.sql` in Supabase SQL Editor to enable authenticated delivery inserts and per-user reads.
+Run `deliveries_rls.sql` in Supabase SQL Editor to enable authenticated delivery inserts and per-user reads. Anonymous delivery inserts are disabled.
 
 Run `messages.sql` in Supabase SQL Editor to create the chat table, enable RLS, and add the table to Supabase Realtime. Users can read their own conversations; only admins can read all messages addressed to `admin`.
 
@@ -61,7 +61,7 @@ Run `admin_chat_setup.sql` after `auth_profiles.sql` and `messages.sql` to allow
 
 Run `vendor_chat_setup.sql` after `app_features.sql` and `profile_setup.sql` to enable searchable rental results with safe vendor UUID/name fields, resolve listing links by bigint owner ID, provide names and scoped profiles for direct-message contacts, and load vendor portfolios without exposing `public.users`. It also adds a server-enforced one-time item-interest share per customer/listing, backfills matching legacy item-interest messages, returns the original message for repeat attempts so it remains visible in chat, and includes the listing photo in new item-share messages. The `messages` table stores `receiver_id` as text; direct vendor chats store the UUID's text form, while the support chat uses `admin`.
 
-Run `rental_booking_setup.sql` after `vendor_chat_setup.sql` to add the renter/vendor booking handshake. A customer who has sent the listing proposes rental dates, pickup and delivery addresses, and a pickup time in the vendor chat. The listing owner must accept or decline that exact proposal. Only acceptance creates a delivery record; row-level security lets the renter and listing owner read that booking, while unrelated users cannot. Confirmed date ranges cannot overlap for the same listing. The delivery page uses the same RLS-protected delivery list and displays these agreed bookings to both participants.
+Run `rental_booking_setup.sql` after `vendor_chat_setup.sql` to add the renter/vendor booking handshake. A customer who has sent the listing proposes rental dates, pickup and delivery addresses, and a pickup time in the vendor chat. The listing owner must accept or decline that exact proposal. Only acceptance creates a delivery record; row-level security lets the renter and listing owner read that booking, while unrelated users cannot. Confirmed date ranges cannot overlap for the same listing. The proposal geocodes and stores both addresses so selecting a confirmed booking on the delivery page can draw the red route. This script also removes anonymous delivery insert grants and policies.
 
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 

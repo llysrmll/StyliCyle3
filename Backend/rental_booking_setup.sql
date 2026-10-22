@@ -6,6 +6,10 @@ alter table public.deliveries
   add column if not exists vendor_auth_user_id uuid references auth.users(id) on delete set null,
   add column if not exists rental_booking_id bigint;
 
+revoke insert on table public.deliveries from public, anon;
+drop policy if exists "Public can submit valid deliveries" on public.deliveries;
+drop policy if exists "Anonymous can submit valid deliveries" on public.deliveries;
+
 do $function$
 begin
   if not exists (
@@ -35,6 +39,10 @@ create table if not exists public.rental_booking_requests (
   pickup_address text not null,
   delivery_address text not null,
   pickup_time timestamp without time zone not null,
+  pickup_lat double precision not null check (pickup_lat between -90 and 90),
+  pickup_lng double precision not null check (pickup_lng between -180 and 180),
+  delivery_lat double precision not null check (delivery_lat between -90 and 90),
+  delivery_lng double precision not null check (delivery_lng between -180 and 180),
   notes text,
   status text not null default 'pending_vendor'
     check (status in ('pending_vendor', 'confirmed', 'declined')),
@@ -47,6 +55,12 @@ create table if not exists public.rental_booking_requests (
   check (length(btrim(delivery_address)) between 1 and 500),
   check (notes is null or length(notes) <= 2000)
 );
+
+alter table public.rental_booking_requests
+  add column if not exists pickup_lat double precision,
+  add column if not exists pickup_lng double precision,
+  add column if not exists delivery_lat double precision,
+  add column if not exists delivery_lng double precision;
 
 create unique index if not exists rental_booking_requests_one_pending_per_item_customer
   on public.rental_booking_requests (item_id, requester_auth_user_id)
@@ -126,29 +140,7 @@ with check (
   and (notes is null or length(notes) <= 2000)
 );
 
-drop policy if exists "Public can submit valid deliveries" on public.deliveries;
-create policy "Public can submit valid deliveries"
-on public.deliveries
-for insert
-to anon
-with check (
-  user_id is null
-  and auth_user_id is null
-  and item_id is null
-  and vendor_auth_user_id is null
-  and rental_booking_id is null
-  and status = 'Pending'
-  and pickup_address is not null
-  and length(btrim(pickup_address)) between 1 and 500
-  and delivery_address is not null
-  and length(btrim(delivery_address)) between 1 and 500
-  and pickup_time is not null
-  and pickup_lat between -90 and 90
-  and pickup_lng between -180 and 180
-  and delivery_lat between -90 and 90
-  and delivery_lng between -180 and 180
-  and (notes is null or length(notes) <= 2000)
-);
+drop function if exists public.propose_rental_delivery(bigint, date, date, text, text, timestamp without time zone, text);
 
 create or replace function public.propose_rental_delivery(
   p_item_id bigint,
@@ -157,6 +149,10 @@ create or replace function public.propose_rental_delivery(
   p_pickup_address text,
   p_delivery_address text,
   p_pickup_time timestamp without time zone,
+  p_pickup_lat double precision,
+  p_pickup_lng double precision,
+  p_delivery_lat double precision,
+  p_delivery_lng double precision,
   p_notes text default null
 )
 returns setof public.messages
@@ -187,6 +183,12 @@ begin
   end if;
   if length(coalesce(p_notes, '')) > 2000 then
     raise exception 'Notes must be 2,000 characters or fewer.';
+  end if;
+  if p_pickup_lat is null or p_pickup_lat not between -90 and 90
+    or p_pickup_lng is null or p_pickup_lng not between -180 and 180
+    or p_delivery_lat is null or p_delivery_lat not between -90 and 90
+    or p_delivery_lng is null or p_delivery_lng not between -180 and 180 then
+    raise exception 'Could not locate both addresses on the map. Please check the addresses and try again.';
   end if;
 
   select item.*
@@ -250,12 +252,14 @@ begin
   insert into public.rental_booking_requests (
     item_id, requester_auth_user_id, vendor_auth_user_id, requester_user_id,
     item_title, category, price_per_day, rental_start, rental_end,
-    pickup_address, delivery_address, pickup_time, notes
+    pickup_address, delivery_address, pickup_time,
+    pickup_lat, pickup_lng, delivery_lat, delivery_lng, notes
   )
   values (
     v_item.id, (select auth.uid()), v_vendor_auth_user_id, v_requester_user_id,
     v_item.title, v_item.category, v_item.price_per_day, p_rental_start, p_rental_end,
     btrim(p_pickup_address), btrim(p_delivery_address), p_pickup_time,
+    p_pickup_lat, p_pickup_lng, p_delivery_lat, p_delivery_lng,
     nullif(btrim(coalesce(p_notes, '')), '')
   )
   returning * into v_booking;
@@ -290,8 +294,8 @@ begin
 end;
 $function$;
 
-revoke all on function public.propose_rental_delivery(bigint, date, date, text, text, timestamp without time zone, text) from public, anon;
-grant execute on function public.propose_rental_delivery(bigint, date, date, text, text, timestamp without time zone, text) to authenticated;
+revoke all on function public.propose_rental_delivery(bigint, date, date, text, text, timestamp without time zone, double precision, double precision, double precision, double precision, text) from public, anon;
+grant execute on function public.propose_rental_delivery(bigint, date, date, text, text, timestamp without time zone, double precision, double precision, double precision, double precision, text) to authenticated;
 
 create or replace function public.respond_rental_delivery(
   p_booking_id bigint,
@@ -367,7 +371,8 @@ begin
     v_rental_days := (v_booking.rental_end - v_booking.rental_start) + 1;
     insert into public.deliveries (
       user_id, auth_user_id, vendor_auth_user_id, item_id, rental_booking_id,
-      pickup_address, delivery_address, pickup_time, item_type, notes, status
+      pickup_address, delivery_address, pickup_time,
+      pickup_lat, pickup_lng, delivery_lat, delivery_lng, item_type, notes, status
     )
     values (
       v_booking.requester_user_id,
@@ -378,6 +383,10 @@ begin
       v_booking.pickup_address,
       v_booking.delivery_address,
       v_booking.pickup_time,
+      v_booking.pickup_lat,
+      v_booking.pickup_lng,
+      v_booking.delivery_lat,
+      v_booking.delivery_lng,
       v_booking.item_title,
       concat(
         'Agreed rental period: ',

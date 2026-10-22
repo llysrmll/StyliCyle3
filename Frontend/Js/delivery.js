@@ -21,6 +21,20 @@ if (document.getElementById('deliveryForm')) {
     if (fallback) fallback.hidden = false;
   }
 
+  async function geocodeAddress(address) {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+      { headers: { Accept: 'application/json' } }
+    );
+    if (!response.ok) {
+      throw new Error(`Address lookup failed (${response.status}).`);
+    }
+    const results = await response.json();
+    const location = results[0];
+    if (!location) throw new Error(`Could not locate: ${address}`);
+    return [Number(location.lat), Number(location.lon)];
+  }
+
   // ==========================================
   // 2. MAP LOGIC
   // ==========================================
@@ -60,30 +74,17 @@ if (document.getElementById('deliveryForm')) {
     }
 
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`);
-      if (!response.ok) {
-        throw new Error(`Geocoding request failed (${response.status})`);
-      }
-      const data = await response.json();
+      const coords = await geocodeAddress(address);
 
-      if (data && data.length > 0) {
-        const location = data[0];
-        const coords = [parseFloat(location.lat), parseFloat(location.lon)];
-
-        if (input.id === 'pickupAddress') {
-          input.value = location.display_name;
-          pickupCoords = coords;
-        } else {
-          input.value = location.display_name;
-          deliveryCoords = coords;
-        }
-
-        map.setView(coords, 15);
-        marker.setLatLng(coords);
-        updateRoute();
+      if (input.id === 'pickupAddress') {
+        pickupCoords = coords;
       } else {
-        alert('Address not found. Please try a different search term.');
+        deliveryCoords = coords;
       }
+
+      map.setView(coords, 15);
+      marker.setLatLng(coords);
+      updateRoute();
     } catch (error) {
       console.error('Geocoding error:', error);
       alert('Error searching for address. Please try again.');
@@ -108,6 +109,9 @@ if (document.getElementById('deliveryForm')) {
           L.latLng(pickupCoords[0], pickupCoords[1]),
           L.latLng(deliveryCoords[0], deliveryCoords[1])
         ],
+        lineOptions: {
+          styles: [{ color: '#d62828', opacity: 0.9, weight: 6 }]
+        },
         routeWhileDragging: false,
         createMarker: function (i, waypoint, n) {
           const markerOptions = { draggable: true };
@@ -123,6 +127,15 @@ if (document.getElementById('deliveryForm')) {
           return L.marker(waypoint.latLng, markerOptions);
         }
       }).addTo(map);
+      routingControl.on('routingerror', () => {
+        const routeStatus = document.getElementById('deliveryRouteStatus');
+        if (routeStatus) routeStatus.textContent = 'The route could not be calculated. Verify both addresses and try again.';
+      });
+      const routeStatus = document.getElementById('deliveryRouteStatus');
+      if (routeStatus) routeStatus.textContent = 'Calculating route...';
+      routingControl.on('routesfound', () => {
+        if (routeStatus) routeStatus.textContent = 'Route displayed in red.';
+      });
 
       setTimeout(() => {
         map.fitBounds(L.latLngBounds([pickupCoords, deliveryCoords]), { padding: [20, 20] });
@@ -186,11 +199,24 @@ if (document.getElementById('deliveryForm')) {
         ${delivery.notes ? `<p><strong>Notes:</strong> ${esc(delivery.notes)}</p>` : ''}
       `;
 
-      item.addEventListener('click', () => {
-        if (delivery.pickup_lat != null && delivery.delivery_lat != null) {
-          pickupCoords = [delivery.pickup_lat, delivery.pickup_lng];
-          deliveryCoords = [delivery.delivery_lat, delivery.delivery_lng];
+      item.addEventListener('click', async () => {
+        const routeStatus = document.getElementById('deliveryRouteStatus');
+        try {
+          if (
+            delivery.pickup_lat != null && delivery.pickup_lng != null &&
+            delivery.delivery_lat != null && delivery.delivery_lng != null
+          ) {
+            pickupCoords = [Number(delivery.pickup_lat), Number(delivery.pickup_lng)];
+            deliveryCoords = [Number(delivery.delivery_lat), Number(delivery.delivery_lng)];
+          } else {
+            if (routeStatus) routeStatus.textContent = 'Locating saved addresses...';
+            pickupCoords = await geocodeAddress(delivery.pickup_address);
+            await new Promise(resolve => window.setTimeout(resolve, 1100));
+            deliveryCoords = await geocodeAddress(delivery.delivery_address);
+          }
           updateRoute();
+        } catch (error) {
+          if (routeStatus) routeStatus.textContent = `Could not display route: ${error.message || String(error)}`;
         }
       });
 

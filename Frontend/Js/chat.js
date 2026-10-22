@@ -127,6 +127,22 @@ function hasSharedCurrentListing() {
   });
 }
 
+async function geocodeBookingAddress(address) {
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+    { headers: { Accept: "application/json" } }
+  );
+  if (!response.ok) throw new Error(`Address lookup failed (${response.status}).`);
+  const results = await response.json();
+  const location = results[0];
+  if (!location) throw new Error(`Could not find this address: ${address}`);
+  return {
+    lat: Number(location.lat),
+    lng: Number(location.lon),
+    address: location.display_name
+  };
+}
+
 function updateBookingProposalButton() {
   if (!proposeDeliveryButton) return;
   const shouldShow = isUuid(currentReceiver) &&
@@ -659,13 +675,22 @@ async function initializeChat() {
     submitButton.disabled = true;
     deliveryProposalStatus.textContent = "Sending proposal...";
     try {
+      const pickupAddressInput = document.getElementById("bookingPickupAddress");
+      const deliveryAddressInput = document.getElementById("bookingDeliveryAddress");
+      const pickupLocation = await geocodeBookingAddress(pickupAddressInput.value.trim());
+      await new Promise((resolve) => window.setTimeout(resolve, 1100));
+      const deliveryLocation = await geocodeBookingAddress(deliveryAddressInput.value.trim());
       const { data, error } = await chatClient.rpc("propose_rental_delivery", {
         p_item_id: Number(currentItemId),
         p_rental_start: document.getElementById("bookingRentalStart").value,
         p_rental_end: document.getElementById("bookingRentalEnd").value,
-        p_pickup_address: document.getElementById("bookingPickupAddress").value.trim(),
-        p_delivery_address: document.getElementById("bookingDeliveryAddress").value.trim(),
+        p_pickup_address: pickupAddressInput.value.trim(),
+        p_delivery_address: deliveryAddressInput.value.trim(),
         p_pickup_time: document.getElementById("bookingPickupTime").value,
+        p_pickup_lat: pickupLocation.lat,
+        p_pickup_lng: pickupLocation.lng,
+        p_delivery_lat: deliveryLocation.lat,
+        p_delivery_lng: deliveryLocation.lng,
         p_notes: document.getElementById("bookingNotes").value.trim() || null
       });
       if (error) throw error;

@@ -211,7 +211,11 @@ with check (
 alter table public.deliveries
   add column if not exists auth_user_id uuid references auth.users(id) on delete set null;
 
+revoke insert on table public.deliveries from public, anon;
 grant select, insert on table public.deliveries to authenticated;
+
+drop policy if exists "Public can submit valid deliveries" on public.deliveries;
+drop policy if exists "Anonymous can submit valid deliveries" on public.deliveries;
 
 drop policy if exists "Authenticated users can read their deliveries" on public.deliveries;
 create policy "Authenticated users can read their deliveries"
