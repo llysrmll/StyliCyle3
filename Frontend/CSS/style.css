@@ -1703,6 +1703,10 @@ h1 {
   text-decoration: none;
 }
 
+.chat-action-button[hidden] {
+  display: none;
+}
+
 .chat-action-button:hover {
   background: #f7fafb;
 }
