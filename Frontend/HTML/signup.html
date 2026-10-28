@@ -238,14 +238,14 @@
       <p>Set up your partnership profile and start listing rentals with confidence.</p>
     </div>
     
-    <form id="registerForm">
+    <form id="registerForm" novalidate>
       <!-- Hidden input to define role -->
       <input type="hidden" id="role" value="user">
       
-      <input type="text" id="firstName" placeholder="First Name" required>
+      <input type="text" id="firstName" placeholder="First Name" minlength="2" required>
       <input type="text" id="middleName" placeholder="Middle Name">
-      <input type="text" id="lastName" placeholder="Last Name" required>
-      <input type="number" id="age" placeholder="Age" required>
+      <input type="text" id="lastName" placeholder="Last Name" minlength="2" required>
+      <input type="number" id="age" placeholder="Age" min="18" step="1" required>
       <input type="email" id="email" placeholder="Email" required>
       <div class="password-input-wrap">
         <input type="password" id="password" placeholder="Password" required>
