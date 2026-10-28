@@ -131,6 +131,11 @@ document.getElementById("registerForm")?.addEventListener("submit", async functi
   const role = document.getElementById("role").value;
   const agreeTermsSignup = document.getElementById("agreeTermsSignup")?.checked;
 
+  if ([firstName, middleName, lastName].some((name) => /\p{N}/u.test(name))) {
+    await window.showModal("Check your details", "Names cannot contain numbers.", "error");
+    return;
+  }
+
   if (firstName.length < 2) {
     await window.showModal("Check your details", "First name must be at least 2 characters long.", "error");
     return;
