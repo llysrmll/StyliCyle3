@@ -190,6 +190,13 @@ function syncListingShareState() {
   setChatStatus("You have already sent this listing to its vendor.");
 }
 
+function scrollChatToBottom() {
+  if (!chatWindow) return;
+  window.requestAnimationFrame(() => {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  });
+}
+
 function renderMessages() {
   if (!chatWindow) return;
   const messages = [...currentMessages.values()].sort(
@@ -227,6 +234,7 @@ function renderMessages() {
         image.src = imageUrl;
         image.alt = listing.title ? `Listing photo: ${listing.title}` : "Listing photo";
         image.loading = "lazy";
+        image.addEventListener("load", scrollChatToBottom, { once: true });
         element.appendChild(image);
       }
     }
@@ -274,7 +282,7 @@ function renderMessages() {
     }
     chatWindow.appendChild(element);
   }
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  scrollChatToBottom();
 }
 
 function addMessage(message) {
