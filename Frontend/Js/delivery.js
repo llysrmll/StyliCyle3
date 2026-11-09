@@ -226,6 +226,11 @@ if (document.getElementById('deliveryForm')) {
 
   document.getElementById('deliveryForm').addEventListener('submit', async function (e) {
     e.preventDefault();
+    const requiredValidation = window.validateRequiredFields(this);
+    if (requiredValidation !== true) {
+      await requiredValidation;
+      return;
+    }
 
     if (!pickupCoords || !deliveryCoords) {
       alert('Please click Search beside BOTH addresses so the map can find them.');

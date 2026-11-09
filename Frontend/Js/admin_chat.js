@@ -25,7 +25,7 @@ function renderAdminContacts() {
     button.type = "button";
     button.className = `admin-contact${selectedUserId === userId ? " active" : ""}`;
     button.setAttribute("aria-pressed", String(selectedUserId === userId));
-    const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || userId;
+    const name = profile.full_name || [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || "User";
     const userLabel = document.createElement("span");
     userLabel.textContent = name;
     button.appendChild(userLabel);
@@ -58,6 +58,19 @@ function renderConversation() {
   for (const message of messages) {
     const bubble = document.createElement("div");
     bubble.className = `message ${message.sender_id === adminUserId ? "user" : "bot"}`;
+    const senderProfile = contactDetails.get(message.sender_id);
+    const senderName = message.sender_id === adminUserId
+      ? "You"
+      : senderProfile?.full_name ||
+        [senderProfile?.first_name, senderProfile?.last_name].filter(Boolean).join(" ") ||
+        senderProfile?.email ||
+        "User";
+    const sender = document.createElement("small");
+    sender.className = "message-sender";
+    sender.textContent = senderProfile?.email && message.sender_id !== adminUserId
+      ? `${senderName} · ${senderProfile.email}`
+      : senderName;
+    bubble.appendChild(sender);
     const text = document.createElement("div");
     text.className = "message-text";
     text.textContent = message.content;
@@ -85,13 +98,13 @@ async function loadAdminContacts() {
     return;
   }
 
-  const { data: profiles, error: profileError } = await window.adminClient
-    .from("profiles")
-    .select("id, email, first_name, last_name")
-    .in("id", userIds);
+  const { data: profiles, error: profileError } = await window.adminClient.rpc("admin_public_user_details", {
+    p_auth_user_ids: userIds,
+    p_public_user_ids: []
+  });
   if (profileError) throw new Error(`Could not load user details: ${profileError.message}`);
 
-  const profilesById = new Map((profiles || []).map((profile) => [profile.id, profile]));
+  const profilesById = new Map((profiles || []).map((profile) => [profile.auth_user_id, profile]));
   for (const id of userIds) {
     contactDetails.set(id, profilesById.get(id) || { id });
   }
@@ -162,24 +175,22 @@ function addRealtimeMessage(message) {
       contactDetails.set(message.sender_id, { id: message.sender_id });
       contactsStatus.textContent = "";
       renderAdminContacts();
-      window.adminClient
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .eq("id", message.sender_id)
-        .maybeSingle()
-        .then(({ data, error }) => {
-          if (error) {
-            contactsStatus.textContent = `Could not load sender details: ${error.message}`;
-            return;
-          }
-          if (data) {
-            contactDetails.set(message.sender_id, data);
-            renderAdminContacts();
-          }
-        })
-        .catch((error) => {
-          contactsStatus.textContent = `Could not load sender details: ${error.message || String(error)}`;
-        });
+      window.adminClient.rpc("admin_public_user_details", {
+        p_auth_user_ids: [message.sender_id],
+        p_public_user_ids: []
+      }).then(({ data, error }) => {
+        if (error) {
+          contactsStatus.textContent = `Could not load sender details: ${error.message}`;
+          return;
+        }
+        if (data?.[0]) {
+          contactDetails.set(message.sender_id, data[0]);
+          renderAdminContacts();
+          if (selectedUserId === message.sender_id) renderConversation();
+        }
+      }).catch((error) => {
+        contactsStatus.textContent = `Could not load sender details: ${error.message || String(error)}`;
+      });
     }
     if (!selectedUserId) {
       openConversation(message.sender_id).catch((error) => {

@@ -242,6 +242,34 @@ h1 {
   padding: 22px;
 }
 
+.rental-category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+.rental-category-pill {
+  padding: 8px 16px;
+  border: 1px solid rgba(95, 36, 73, 0.25);
+  border-radius: 999px;
+  background: #fff;
+  color: #5d204c;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.rental-category-pill:hover,
+.rental-category-pill.active {
+  background: #5d204c;
+  color: #fff;
+}
+
+.rental-category-pill:focus-visible {
+  outline: 3px solid rgba(95, 36, 73, 0.35);
+  outline-offset: 2px;
+}
+
 .rental-layout {
   display: grid;
   grid-template-columns: 0.95fr 1.3fr;

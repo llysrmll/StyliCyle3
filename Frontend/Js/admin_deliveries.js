@@ -36,20 +36,48 @@ async function loadAdminDeliveries() {
     return;
   }
 
+  const authUserIds = [...new Set((data || []).map((delivery) => delivery.auth_user_id).filter(Boolean))];
+  const publicUserIds = [...new Set((data || []).map((delivery) => delivery.user_id).filter(Boolean))];
+  const { data: userDetails, error: detailsError } = await window.adminClient.rpc("admin_public_user_details", {
+    p_auth_user_ids: authUserIds,
+    p_public_user_ids: publicUserIds
+  });
+  if (detailsError) {
+    deliveriesStatus.textContent = `Could not load delivery user names: ${detailsError.message}`;
+    return;
+  }
+  const usersByAuthId = new Map((userDetails || []).map((user) => [user.auth_user_id, user]));
+  const usersByPublicId = new Map((userDetails || []).map((user) => [String(user.public_user_id), user]));
+
   deliveriesBody.replaceChildren();
   for (const delivery of data || []) {
     const row = document.createElement("tr");
+    const user = usersByAuthId.get(delivery.auth_user_id) || usersByPublicId.get(String(delivery.user_id));
     const values = [
       delivery.id,
-      delivery.auth_user_id || delivery.user_id || "—",
       delivery.pickup_address,
       delivery.delivery_address,
       delivery.pickup_time ? new Date(delivery.pickup_time).toLocaleString() : "—",
       delivery.item_type || "—"
     ];
-    for (const value of values) {
+    for (let index = 0; index < values.length; index += 1) {
       const cell = document.createElement("td");
-      cell.textContent = value;
+      cell.textContent = values[index] ?? "—";
+      if (index === 0) {
+        row.appendChild(cell);
+        const userCell = document.createElement("td");
+        const userName = document.createElement("span");
+        userName.textContent = user?.full_name || user?.email || "Unknown user";
+        userCell.appendChild(userName);
+        if (user?.email && user.full_name) {
+          const userEmail = document.createElement("small");
+          userEmail.textContent = user.email;
+          userEmail.style.display = "block";
+          userCell.appendChild(userEmail);
+        }
+        row.appendChild(userCell);
+        continue;
+      }
       row.appendChild(cell);
     }
 

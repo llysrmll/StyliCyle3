@@ -1,5 +1,8 @@
 -- Run after app_features.sql and profile_setup.sql.
--- Exposes only available listings and safe vendor labels to authenticated users.
+-- Exposes available rentals, safe vendor labels, and atomic pending claims.
+
+alter table public.items
+  add column if not exists pending_renter_id bigint references public.users(id) on delete set null;
 
 alter table public.messages enable row level security;
 grant select, insert on table public.messages to authenticated;
@@ -30,7 +33,58 @@ for insert
 to authenticated
 with check (sender_id = (select auth.uid()));
 
-create or replace function public.search_rentals_with_vendors(p_query text)
+create or replace function public.claim_rental_item(p_item_id bigint)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  requester_id bigint;
+  claimed_item_id bigint;
+  current_status text;
+  current_renter_id bigint;
+begin
+  if (select auth.uid()) is null then
+    raise exception 'Authentication is required.' using errcode = '42501';
+  end if;
+
+  requester_id := public.current_public_user_id();
+  if requester_id is null then
+    raise exception 'Your account is not linked to a rental profile.';
+  end if;
+
+  update public.items as item
+  set status = 'pending',
+      pending_renter_id = requester_id
+  where item.id = p_item_id
+    and item.owner_id is not null
+    and item.owner_id <> requester_id
+    and item.status = 'available'
+  returning item.id into claimed_item_id;
+
+  if found then
+    return true;
+  end if;
+
+  select item.status, item.pending_renter_id
+  into current_status, current_renter_id
+  from public.items as item
+  where item.id = p_item_id;
+
+  return coalesce(current_status = 'pending' and current_renter_id = requester_id, false);
+end;
+$function$;
+
+revoke all on function public.claim_rental_item(bigint) from public, anon;
+grant execute on function public.claim_rental_item(bigint) to authenticated;
+
+drop function if exists public.search_rentals_with_vendors(text);
+drop function if exists public.search_rentals_with_vendors(text, text);
+create function public.search_rentals_with_vendors(
+  p_query text,
+  p_category text default null
+)
 returns table (
   id bigint,
   owner_id bigint,
@@ -78,12 +132,16 @@ as $function$
       or item.title ilike '%' || p_query || '%'
       or coalesce(item.category, '') ilike '%' || p_query || '%'
     )
+    and (
+      nullif(btrim(p_category), '') is null
+      or lower(btrim(item.category)) = lower(btrim(p_category))
+    )
   order by item.created_at desc
   limit 100
 $function$;
 
-revoke all on function public.search_rentals_with_vendors(text) from public, anon;
-grant execute on function public.search_rentals_with_vendors(text) to authenticated;
+revoke all on function public.search_rentals_with_vendors(text, text) from public, anon;
+grant execute on function public.search_rentals_with_vendors(text, text) to authenticated;
 
 create or replace function public.vendor_chat_details(p_owner_id bigint)
 returns table (
@@ -113,7 +171,13 @@ as $function$
       select 1
       from public.items as item
       where item.owner_id = public_user.id
-        and item.status = 'available'
+        and (
+          item.status = 'available'
+          or (
+            item.status = 'pending'
+            and item.pending_renter_id = public.current_public_user_id()
+          )
+        )
     )
   limit 1
 $function$;
@@ -223,7 +287,13 @@ begin
   into v_item
   from public.items as item
   where item.id = p_item_id
-    and item.status = 'available'
+    and (
+      item.status = 'available'
+      or (
+        item.status = 'pending'
+        and item.pending_renter_id = public.current_public_user_id()
+      )
+    )
   for share;
 
   if not found then

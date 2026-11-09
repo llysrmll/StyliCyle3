@@ -36,6 +36,13 @@
         <button type="submit">Search</button>
       </form>
 
+      <nav class="rental-category-filters" aria-label="Filter rentals by category">
+        <button type="button" class="rental-category-pill active" data-category="" aria-pressed="true">All</button>
+        <button type="button" class="rental-category-pill" data-category="Bridal" aria-pressed="false">Bridal</button>
+        <button type="button" class="rental-category-pill" data-category="Formalwear" aria-pressed="false">Formalwear</button>
+        <button type="button" class="rental-category-pill" data-category="Accessories" aria-pressed="false">Accessories</button>
+      </nav>
+
       <div class="rental-layout">
         <section class="listings-panel">
           <h3>My Listings</h3>
@@ -47,25 +54,25 @@
           <h1>List your item for rent</h1>
           <p class="subtitle">Share your dress, suit, or accessory with trusted event renters.</p>
 
-          <form id="rentalForm" class="rental-form">
+          <form id="rentalForm" class="rental-form" novalidate>
             <label class="field-group">
-              <span>Item Name</span>
+              <span>Item Name <span class="required-marker" aria-hidden="true">*</span></span>
               <input type="text" name="title" placeholder="Wedding gown, tuxedo, accent piece" required>
             </label>
 
             <label class="field-group">
-              <span>Category</span>
+              <span>Category <span class="required-marker" aria-hidden="true">*</span></span>
               <input type="text" name="category" placeholder="Bridal, formalwear, accessory" required>
             </label>
 
             <label class="field-group">
-              <span>Price per day (₱)</span>
+              <span>Price per day (₱) <span class="required-marker" aria-hidden="true">*</span></span>
               <input type="number" name="price_per_day" min="1" step="0.01" placeholder="e.g. 650" required>
             </label>
 
             <div class="size-fields">
               <label class="field-group">
-                <span>Clothing Size</span>
+                <span>Clothing Size <span class="required-marker" aria-hidden="true">*</span></span>
                 <select name="size" required>
                   <option value="">Select size</option>
                   <option>XS</option>
@@ -92,7 +99,7 @@
             </div>
 
             <label class="field-group">
-              <span>Description</span>
+              <span>Description <span class="required-marker" aria-hidden="true">*</span></span>
               <textarea name="description" placeholder="Describe the fit, condition, colors, and rental details" required></textarea>
             </label>
 
@@ -101,8 +108,8 @@
               <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
             </label>
 
-            <label class="check-row"><input type="checkbox" name="agree_terms" value="1" required> Agree to Rental Terms</label>
-            <label class="check-row"><input type="checkbox" name="verify_condition" value="1" required> Verify Item Condition</label>
+            <label class="check-row"><input type="checkbox" name="agree_terms" value="1" required> Agree to Rental Terms <span class="required-marker" aria-hidden="true">*</span></label>
+            <label class="check-row"><input type="checkbox" name="verify_condition" value="1" required> Verify Item Condition <span class="required-marker" aria-hidden="true">*</span></label>
 
             <button type="submit" class="primary-button">Publish Listing</button>
           </form>

@@ -55,6 +55,16 @@ function ensureModal() {
       outline: 3px solid #2563eb;
       outline-offset: 3px;
     }
+    .required-marker {
+      display: inline !important;
+      margin-left: 3px;
+      color: #dc2626 !important;
+      font-weight: 700;
+    }
+    .input-error {
+      border-color: #dc2626 !important;
+      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.18) !important;
+    }
   `;
   document.head.appendChild(style);
 
@@ -72,6 +82,8 @@ function ensureModal() {
   `;
   document.body.appendChild(overlay);
 }
+
+ensureModal();
 
 window.showModal = function showModal(title, message, type = "error") {
   ensureModal();
@@ -104,6 +116,46 @@ window.showModal = function showModal(title, message, type = "error") {
   });
 };
 
+window.validateRequiredFields = function validateRequiredFields(form) {
+  const requiredFields = [...form.querySelectorAll("[required]")];
+  const isEmpty = (field) => {
+    if (field.type === "checkbox" || field.type === "radio") return !field.checked;
+    if (field.type === "file") return !field.files?.length;
+    return !String(field.value || "").trim();
+  };
+  const emptyFields = requiredFields.filter(isEmpty);
+
+  for (const field of requiredFields) {
+    const empty = emptyFields.includes(field);
+    field.classList.toggle("input-error", empty);
+    if (empty) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
+  }
+
+  if (!emptyFields.length) return true;
+  emptyFields[0].focus();
+  return window.showModal("Required fields", "Please fill out all required fields.", "error")
+    .then(() => false);
+};
+
+document.querySelectorAll("form").forEach((form) => {
+  form.querySelectorAll("[required]").forEach((field) => {
+    const updateError = () => {
+      const empty = field.type === "checkbox" || field.type === "radio"
+        ? !field.checked
+        : field.type === "file"
+          ? !field.files?.length
+          : !String(field.value || "").trim();
+      if (!empty) {
+        field.classList.remove("input-error");
+        field.removeAttribute("aria-invalid");
+      }
+    };
+    field.addEventListener("input", updateError);
+    field.addEventListener("change", updateError);
+  });
+});
+
 function setSubmitting(form, submitting, submittingText = "Please wait...") {
   const button = form.querySelector('button[type="submit"]');
   if (!button) return;
@@ -121,6 +173,11 @@ function authErrorMessage(error) {
 
 document.getElementById("registerForm")?.addEventListener("submit", async function (event) {
   event.preventDefault();
+  const requiredValidation = window.validateRequiredFields(this);
+  if (requiredValidation !== true) {
+    await requiredValidation;
+    return;
+  }
   const firstName = document.getElementById("firstName").value.trim();
   const middleName = document.getElementById("middleName").value.trim();
   const lastName = document.getElementById("lastName").value.trim();

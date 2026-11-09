@@ -34,6 +34,11 @@
       margin-bottom: 0;
     }
     .delivery-form h3 { margin-top: 0; }
+    .delivery-form > form > label {
+      display: block;
+      margin-top: 8px;
+      font-weight: 600;
+    }
     .delivery-form input, .delivery-form select, .delivery-form textarea {
       width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;
     }
@@ -112,17 +117,21 @@
   <main class="dashboard delivery-layout">
     <section class="delivery-form">
       <h3>Schedule Clothing Delivery</h3>
-      <form id="deliveryForm">
+      <form id="deliveryForm" novalidate>
+        <label for="pickupAddress">Pickup Address (Tailor/Store) <span class="required-marker" aria-hidden="true">*</span></label>
         <div style="display: flex; align-items: center;">
           <input type="text" id="pickupAddress" placeholder="Pickup Address (Tailor/Store)" required style="flex: 1;">
           <button type="button" class="search-btn" id="pickupSearchButton">Search</button>
         </div>
+        <label for="deliveryAddress">Delivery Address (Event Venue/Customer) <span class="required-marker" aria-hidden="true">*</span></label>
         <div style="display: flex; align-items: center;">
           <input type="text" id="deliveryAddress" placeholder="Delivery Address (Event Venue/Customer)" required style="flex: 1;">
           <button type="button" class="search-btn" id="deliverySearchButton">Search</button>
         </div>
+        <label for="pickupTime">Pickup Time <span class="required-marker" aria-hidden="true">*</span></label>
         <input type="datetime-local" id="pickupTime" required>
-        <select id="itemType">
+        <label for="itemType">Clothing Type <span class="required-marker" aria-hidden="true">*</span></label>
+        <select id="itemType" required>
           <option value="">Select Clothing Type</option>
           <option value="tuxedo">Tuxedo</option>
           <option value="gown">Gown for Event</option>

@@ -1,6 +1,9 @@
 -- Run after app_features.sql, profile_setup.sql, and vendor_chat_setup.sql.
 -- Rental delivery bookings require a customer proposal and vendor confirmation.
 
+alter table public.items
+  add column if not exists pending_renter_id bigint references public.users(id) on delete set null;
+
 alter table public.deliveries
   add column if not exists item_id bigint,
   add column if not exists vendor_auth_user_id uuid references auth.users(id) on delete set null,
@@ -191,19 +194,38 @@ begin
     raise exception 'Could not locate both addresses on the map. Please check the addresses and try again.';
   end if;
 
+  v_requester_user_id := public.current_public_user_id();
+  if v_requester_user_id is null then
+    raise exception 'Your account is not linked to a rental profile.';
+  end if;
+
   select item.*
   into v_item
   from public.items as item
   where item.id = p_item_id
-    and item.status = 'available'
-  for share;
+    and (
+      item.status = 'available'
+      or (
+        item.status = 'pending'
+        and item.pending_renter_id = v_requester_user_id
+      )
+    )
+  for update;
   if not found then
     raise exception 'This listing is no longer available.';
   end if;
-
-  v_requester_user_id := public.current_public_user_id();
-  if v_requester_user_id is null then
-    raise exception 'Your account is not linked to a rental profile.';
+  if v_item.owner_id = v_requester_user_id then
+    raise exception 'You cannot request your own listing.';
+  end if;
+  if v_item.status = 'available' then
+    update public.items
+    set status = 'pending',
+        pending_renter_id = v_requester_user_id
+    where id = v_item.id
+      and status = 'available';
+    if not found then
+      raise exception 'This listing is no longer available.';
+    end if;
   end if;
 
   select coalesce(
@@ -342,8 +364,18 @@ begin
     where item.id = v_booking.item_id
       and item.owner_id is not null
     for update;
-    if not found or v_item.status <> 'available' then
+    if not found then
       raise exception 'The listing is no longer available.';
+    end if;
+    if v_item.status = 'available' then
+      update public.items
+      set status = 'pending',
+          pending_renter_id = v_booking.requester_user_id
+      where id = v_item.id
+        and status = 'available';
+    elsif v_item.status is distinct from 'pending'
+      or v_item.pending_renter_id is distinct from v_booking.requester_user_id then
+      raise exception 'The listing is no longer available to this renter.';
     end if;
 
     select coalesce(
@@ -466,6 +498,20 @@ begin
     update public.messages
     set content = v_updated_proposal::text
     where id = v_booking.proposal_message_id;
+
+    if not exists (
+      select 1
+      from public.rental_booking_requests as active_booking
+      where active_booking.item_id = v_booking.item_id
+        and active_booking.status in ('pending_vendor', 'confirmed')
+    ) then
+      update public.items
+      set status = 'available',
+          pending_renter_id = null
+      where id = v_booking.item_id
+        and status = 'pending'
+        and pending_renter_id = v_booking.requester_user_id;
+    end if;
 
     insert into public.messages (sender_id, receiver_id, content)
     values (

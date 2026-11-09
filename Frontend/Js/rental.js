@@ -3,11 +3,32 @@ const listingsElement = document.getElementById("rentalListings");
 const listingsHeading = document.querySelector(".listings-panel h3");
 const listingsStatus = document.getElementById("rentalListingsStatus");
 const rentalForm = document.getElementById("rentalForm");
-let searchTerm = new URLSearchParams(window.location.search).get("search")?.trim() || "";
+const initialRentalParams = new URLSearchParams(window.location.search);
+let searchTerm = initialRentalParams.get("search")?.trim() || "";
+let selectedCategory = initialRentalParams.get("category")?.trim() || "";
 let currentPublicUserId = null;
-let showingSearchResults = Boolean(searchTerm);
 const rentalSearchForm = document.getElementById("rentalSearchForm");
 const rentalSearchInput = document.getElementById("rentalSearchInput");
+const categoryPills = [...document.querySelectorAll(".rental-category-pill")];
+const validCategories = new Set(categoryPills.map((pill) => pill.dataset.category).filter(Boolean));
+if (!validCategories.has(selectedCategory)) selectedCategory = "";
+let showingSearchResults = Boolean(searchTerm || selectedCategory);
+
+function updateRentalUrl() {
+  const params = new URLSearchParams();
+  if (searchTerm) params.set("search", searchTerm);
+  if (selectedCategory) params.set("category", selectedCategory);
+  const query = params.toString();
+  window.history.replaceState({}, "", query ? `${window.location.pathname}?${query}` : window.location.pathname);
+}
+
+function updateCategoryPills() {
+  for (const pill of categoryPills) {
+    const active = pill.dataset.category === selectedCategory;
+    pill.classList.toggle("active", active);
+    pill.setAttribute("aria-pressed", String(active));
+  }
+}
 
 function setListingsStatus(message) {
   if (listingsStatus) listingsStatus.textContent = message;
@@ -17,7 +38,7 @@ function renderListings(items) {
   listingsElement.replaceChildren();
   for (const item of items) {
     const listItem = document.createElement("li");
-    const canMessageVendor = item.owner_id && item.owner_id !== currentPublicUserId;
+    const canMessageVendor = item.owner_id && String(item.owner_id) !== String(currentPublicUserId);
     const card = document.createElement(canMessageVendor ? "a" : "article");
     card.className = "listing-card listing-card-clickable";
     if (canMessageVendor) {
@@ -31,6 +52,26 @@ function renderListings(items) {
       });
       card.href = `/HTML/chatbox.html?${params.toString()}`;
       card.setAttribute("aria-label", `Message ${item.vendor_name || "the vendor"} about ${item.title || "this listing"}`);
+      card.addEventListener("click", async (event) => {
+        event.preventDefault();
+        card.setAttribute("aria-busy", "true");
+        try {
+          const { data: claimed, error: claimError } = await rentalClient.rpc("claim_rental_item", {
+            p_item_id: item.id
+          });
+          if (claimError) throw claimError;
+          if (claimed !== true) {
+            await window.showModal("Listing unavailable", "This rental is no longer available.", "error");
+            await refreshListings();
+            return;
+          }
+          window.location.href = card.href;
+        } catch (error) {
+          await window.showModal("Could not start rental chat", error.message || String(error), "error");
+        } finally {
+          card.removeAttribute("aria-busy");
+        }
+      });
     } else {
       card.classList.remove("listing-card-clickable");
     }
@@ -108,11 +149,15 @@ async function loadMyListings() {
 async function searchListings(query) {
   searchTerm = query;
   showingSearchResults = true;
-  if (listingsHeading) listingsHeading.textContent = `Search Results for “${query}”`;
+  const filters = [];
+  if (query) filters.push(`“${query}”`);
+  if (selectedCategory) filters.push(selectedCategory);
+  if (listingsHeading) listingsHeading.textContent = filters.length ? `Search Results: ${filters.join(" · ")}` : "Available Rentals";
   setListingsStatus("Searching rentals...");
 
   const { data, error } = await rentalClient.rpc("search_rentals_with_vendors", {
-    p_query: query
+    p_query: query,
+    p_category: selectedCategory || null
   });
   if (error) {
     setListingsStatus(`Could not search rentals: ${error.message}`);
@@ -123,7 +168,7 @@ async function searchListings(query) {
 }
 
 async function refreshListings() {
-  if (searchTerm && showingSearchResults) {
+  if (showingSearchResults) {
     await searchListings(searchTerm);
   } else {
     await loadMyListings();
@@ -133,6 +178,11 @@ async function refreshListings() {
 if (rentalForm) {
   rentalForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const requiredValidation = window.validateRequiredFields(rentalForm);
+    if (requiredValidation !== true) {
+      await requiredValidation;
+      return;
+    }
     const submitButton = rentalForm.querySelector('button[type="submit"]');
     const formData = new FormData(rentalForm);
     const imageFile = formData.get("image");
@@ -207,9 +257,11 @@ if (rentalForm) {
 
 document.getElementById("rentalMyListingsBtn")?.addEventListener("click", () => {
   searchTerm = "";
+  selectedCategory = "";
   showingSearchResults = false;
+  updateCategoryPills();
   if (rentalSearchInput) rentalSearchInput.value = "";
-  window.history.replaceState({}, "", window.location.pathname);
+  updateRentalUrl();
   loadMyListings();
   listingsElement.scrollIntoView({ behavior: "smooth", block: "center" });
 });
@@ -217,18 +269,29 @@ document.getElementById("rentalMyListingsBtn")?.addEventListener("click", () => 
 rentalSearchForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const query = rentalSearchInput?.value.trim() || "";
-  if (!query) {
-    setListingsStatus("Enter a title or category to search.");
+  if (!query && !selectedCategory) {
+    setListingsStatus("Enter a title or select a category to search.");
     rentalSearchInput?.focus();
     return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  params.set("search", query);
-  window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+  searchTerm = query;
+  updateRentalUrl();
   await searchListings(query);
   listingsElement.scrollIntoView({ behavior: "smooth", block: "center" });
 });
+
+for (const pill of categoryPills) {
+  pill.addEventListener("click", async () => {
+    searchTerm = rentalSearchInput?.value.trim() || "";
+    selectedCategory = pill.dataset.category || "";
+    showingSearchResults = true;
+    updateCategoryPills();
+    updateRentalUrl();
+    await searchListings(searchTerm);
+    listingsElement.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
 
 document.getElementById("rentalViewMessagesBtn")?.addEventListener("click", () => {
   window.location.href = "/HTML/chatbox.html";
@@ -248,6 +311,7 @@ async function initializeRentals() {
 
   currentPublicUserId = await getPublicUserId();
   if (rentalSearchInput) rentalSearchInput.value = searchTerm;
+  updateCategoryPills();
   await refreshListings();
 }
 
