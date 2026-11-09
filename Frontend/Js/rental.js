@@ -3,6 +3,31 @@ const listingsElement = document.getElementById("rentalListings");
 const listingsHeading = document.querySelector(".listings-panel h3");
 const listingsStatus = document.getElementById("rentalListingsStatus");
 const rentalForm = document.getElementById("rentalForm");
+const rentalTermsDialog = document.getElementById("rentalTermsDialog");
+const rentalTermsCheckbox = document.getElementById("agreeTermsRental");
+const openTermsModal = document.getElementById("openTermsModal");
+
+openTermsModal?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  rentalTermsDialog?.showModal();
+});
+
+document.getElementById("closeTermsModal")?.addEventListener("click", () => {
+  rentalTermsDialog?.close();
+});
+
+document.getElementById("dismissTermsModal")?.addEventListener("click", () => {
+  rentalTermsDialog?.close();
+});
+
+document.getElementById("agreeRentalTermsButton")?.addEventListener("click", () => {
+  if (!rentalTermsCheckbox) return;
+  rentalTermsCheckbox.checked = true;
+  rentalTermsCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
+  rentalTermsDialog?.close();
+});
+
 const initialRentalParams = new URLSearchParams(window.location.search);
 let searchTerm = initialRentalParams.get("search")?.trim() || "";
 let selectedCategory = initialRentalParams.get("category")?.trim() || "";

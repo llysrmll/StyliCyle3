@@ -270,6 +270,128 @@ h1 {
   outline-offset: 2px;
 }
 
+.rental-terms-link {
+  display: inline !important;
+  margin-left: 4px;
+  color: #007bff !important;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.rental-terms-dialog {
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(82vh, 760px);
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  color: #302832;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(34, 20, 31, 0.28);
+}
+
+.rental-terms-dialog::backdrop {
+  background: rgba(25, 16, 24, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.rental-terms-header,
+.rental-terms-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.rental-terms-header {
+  border-bottom: 1px solid #eee7eb;
+}
+
+.rental-terms-eyebrow {
+  margin: 0 0 4px;
+  color: #7d6172;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rental-terms-header h2 {
+  margin: 0;
+  color: #432b3d;
+  font-size: 1.4rem;
+}
+
+.rental-terms-close {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f0f3;
+  color: #51374a;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rental-terms-content {
+  max-height: min(58vh, 540px);
+  padding: 22px 26px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  line-height: 1.6;
+}
+
+.rental-terms-content p {
+  margin: 0 0 16px;
+}
+
+.rental-terms-content h3 {
+  margin: 22px 0 8px;
+  color: #5d204c;
+  font-size: 1.04rem;
+}
+
+.rental-terms-content h3:first-of-type {
+  margin-top: 20px;
+}
+
+.rental-terms-content ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.rental-terms-footer {
+  justify-content: flex-end;
+  border-top: 1px solid #eee7eb;
+  background: #fff;
+}
+
+.rental-terms-footer button {
+  min-height: 42px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.rental-terms-secondary {
+  border: 1px solid #d8ccd4;
+  background: #fff;
+  color: #51374a;
+}
+
+.rental-terms-primary {
+  border: 1px solid #5d204c;
+  background: #5d204c;
+  color: #fff;
+}
+
 .rental-layout {
   display: grid;
   grid-template-columns: 0.95fr 1.3fr;

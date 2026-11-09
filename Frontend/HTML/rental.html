@@ -108,7 +108,12 @@
               <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
             </label>
 
-            <label class="check-row"><input type="checkbox" name="agree_terms" value="1" required> Agree to Rental Terms <span class="required-marker" aria-hidden="true">*</span></label>
+            <label class="check-row">
+              <input type="checkbox" id="agreeTermsRental" name="agree_terms" value="1" required>
+              I agree to the
+              <span id="openTermsModal" class="rental-terms-link">Rental Terms and Conditions</span>
+              <span class="required-marker" aria-hidden="true">*</span>
+            </label>
             <label class="check-row"><input type="checkbox" name="verify_condition" value="1" required> Verify Item Condition <span class="required-marker" aria-hidden="true">*</span></label>
 
             <button type="submit" class="primary-button">Publish Listing</button>
@@ -117,6 +122,71 @@
       </div>
     </div>
   </main>
+
+  <dialog id="rentalTermsDialog" class="rental-terms-dialog" aria-labelledby="rentalTermsTitle">
+    <header class="rental-terms-header">
+      <div>
+        <p class="rental-terms-eyebrow">Vendor agreement</p>
+        <h2 id="rentalTermsTitle">Rental Terms and Conditions</h2>
+      </div>
+      <button type="button" id="closeTermsModal" class="rental-terms-close" aria-label="Close terms">×</button>
+    </header>
+    <div class="rental-terms-content">
+      <p>Welcome to our Clothing Rental Website! By using our website and renting any of our clothing items, you agree to follow the terms and conditions stated below. Please read them carefully before placing your booking.</p>
+
+      <h3>1. Rental Policy</h3>
+      <ul>
+        <li>All clothing items are available for rent only for the selected rental period.</li>
+        <li>Customers must provide accurate information when booking.</li>
+        <li>Rental items must be returned on or before the agreed return date.</li>
+        <li>Customers are responsible for taking proper care of the rented clothing.</li>
+      </ul>
+
+      <h3>2. Payment and Booking</h3>
+      <ul>
+        <li>A booking will only be confirmed once the required payment has been completed.</li>
+        <li>Customers must provide the correct rental date, return date, and delivery or pickup location.</li>
+        <li>Additional booking or delivery fees may apply depending on the customer's location.</li>
+        <li>The additional fee will be calculated based on the distance and location of the delivery.</li>
+        <li>Any additional charges will be communicated to the customer before the booking is finalized.</li>
+      </ul>
+
+      <h3>3. Refund and Cancellation Policy</h3>
+      <ul>
+        <li>All rental payments are non-refundable once the booking has been confirmed and the clothing item has been rented or reserved.</li>
+        <li>Customers are encouraged to check the clothing size, design, availability, and rental dates before confirming their booking.</li>
+        <li>Cancellations or changes to confirmed bookings may not be eligible for a refund.</li>
+      </ul>
+
+      <h3>4. Damaged or Lost Items</h3>
+      <ul>
+        <li>Customers are responsible for any damage, stains, or loss of rented clothing during the rental period.</li>
+        <li>Additional charges may apply for damaged or lost items, depending on the extent of the damage or the item's value.</li>
+        <li>Normal wear and tear will not be treated as customer-caused damage.</li>
+      </ul>
+
+      <h3>5. Late Returns</h3>
+      <ul>
+        <li>Customers must return the rented clothing on the agreed return date.</li>
+        <li>Late returns may result in additional fees.</li>
+        <li>Customers should inform us as soon as possible if they expect to return an item late.</li>
+      </ul>
+
+      <h3>6. Delivery and Pickup</h3>
+      <ul>
+        <li>Delivery or pickup arrangements will depend on the customer's location and availability.</li>
+        <li>Additional delivery charges may apply depending on the distance.</li>
+        <li>Customers are responsible for providing a complete and accurate delivery address.</li>
+      </ul>
+
+      <h3>7. Agreement</h3>
+      <p>By placing a booking on our website, you acknowledge that you have read, understood, and agreed to all the terms and conditions stated above.</p>
+    </div>
+    <footer class="rental-terms-footer">
+      <button type="button" id="dismissTermsModal" class="rental-terms-secondary">Close</button>
+      <button type="button" id="agreeRentalTermsButton" class="rental-terms-primary">I Understand and Agree</button>
+    </footer>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/Js/supabase-client.js"></script>
