@@ -11,10 +11,7 @@ if (document.getElementById('deliveryForm')) {
   let routingControl;
   let pickupCoords = null;
   let deliveryCoords = null;
-
-  function esc(s) {
-    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
+  let currentAuthUserId = null;
 
   function showMapFallback() {
     const fallback = document.getElementById('mapFallback');
@@ -157,9 +154,159 @@ if (document.getElementById('deliveryForm')) {
   // ==========================================
   // 3. SUPABASE DATABASE LOGIC
   // ==========================================
+  function addDeliveryDetail(container, label, value) {
+    const paragraph = document.createElement('p');
+    const strong = document.createElement('strong');
+    strong.textContent = `${label}: `;
+    paragraph.append(strong, document.createTextNode(value));
+    container.appendChild(paragraph);
+  }
+
+  function renderReturnDetails(container, delivery) {
+    if (!delivery.return_condition && !delivery.return_photo_url) return;
+
+    addDeliveryDetail(container, 'Return condition', delivery.return_condition || 'Not recorded');
+    let photoUrl = null;
+    try {
+      const parsedPhotoUrl = new URL(delivery.return_photo_url);
+      if (parsedPhotoUrl.protocol === 'https:') photoUrl = parsedPhotoUrl.href;
+    } catch (error) {
+      console.warn('Ignoring invalid return photo URL:', error);
+    }
+    if (photoUrl) {
+      const paragraph = document.createElement('p');
+      const link = document.createElement('a');
+      link.href = photoUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.setAttribute('aria-label', 'Open return photo in a new tab');
+      const image = document.createElement('img');
+      image.src = delivery.return_photo_url;
+      image.alt = 'Vendor-uploaded return condition';
+      image.className = 'delivery-return-photo';
+      link.appendChild(image);
+      paragraph.append(link);
+      container.appendChild(paragraph);
+    } else if (delivery.return_photo_url) {
+      addDeliveryDetail(container, 'Return photo', 'Unavailable');
+    }
+
+    if (delivery.admin_verified) {
+      addDeliveryDetail(container, 'Admin verification', 'Resolved');
+    }
+  }
+
+  function createReturnForm(delivery, container) {
+    const form = document.createElement('form');
+    form.className = 'delivery-return-form';
+    form.addEventListener('click', event => event.stopPropagation());
+
+    const conditionLabel = document.createElement('label');
+    conditionLabel.textContent = 'Return condition';
+    const condition = document.createElement('select');
+    condition.required = true;
+    condition.setAttribute('aria-label', 'Return condition');
+    condition.innerHTML = '<option value="">Select condition</option><option value="Returned">Returned</option><option value="Completed - Damaged">Completed - Damaged</option>';
+    conditionLabel.appendChild(condition);
+
+    const photoLabel = document.createElement('label');
+    photoLabel.textContent = 'Return photo';
+    const photo = document.createElement('input');
+    photo.type = 'file';
+    photo.accept = 'image/jpeg,image/png,image/webp';
+    photo.required = true;
+    photoLabel.appendChild(photo);
+
+    const status = document.createElement('p');
+    status.className = 'delivery-return-status';
+    status.setAttribute('role', 'status');
+    const submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.textContent = 'Confirm Return';
+    form.append(conditionLabel, photoLabel, submit, status);
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const file = photo.files?.[0];
+      const extensionByType = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+      const extension = file && extensionByType[file.type];
+      if (!currentAuthUserId) {
+        await window.showModal('Session expired', 'Please log in again before confirming this return.', 'error');
+        return;
+      }
+      if (!condition.value) {
+        await window.showModal('Return condition required', 'Choose the condition of the returned item.', 'error');
+        return;
+      }
+      if (!extension) {
+        await window.showModal('Return photo required', 'Choose a JPG, PNG, or WEBP photo.', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        await window.showModal('Photo is too large', 'Return photos must be 5 MB or smaller.', 'error');
+        return;
+      }
+
+      submit.disabled = true;
+      status.textContent = 'Uploading return photo...';
+      let uploadedPath = null;
+      let returnSaved = false;
+      try {
+        uploadedPath = `${currentAuthUserId}/returns/${delivery.id}-${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabaseClient.storage
+          .from('item-images')
+          .upload(uploadedPath, file, {
+            contentType: file.type,
+            cacheControl: '3600',
+            upsert: false
+          });
+        if (uploadError) throw new Error(`Could not upload return photo: ${uploadError.message}`);
+
+        const photoUrl = supabaseClient.storage.from('item-images').getPublicUrl(uploadedPath).data.publicUrl;
+        const { error } = await supabaseClient.rpc('confirm_rental_return', {
+          p_delivery_id: delivery.id,
+          p_return_condition: condition.value,
+          p_return_photo_url: photoUrl
+        });
+        if (error) throw error;
+        returnSaved = true;
+
+        status.textContent = 'Return confirmed.';
+        await window.showModal(
+          'Return confirmed',
+          condition.value === 'Returned'
+            ? 'The item is available for rent again.'
+            : 'The damaged return has been recorded for admin verification.',
+          'success'
+        );
+        await loadDeliveries();
+      } catch (error) {
+        if (uploadedPath && !returnSaved) {
+          const { error: cleanupError } = await supabaseClient.storage.from('item-images').remove([uploadedPath]);
+          if (cleanupError) console.error('Could not remove unused return photo:', cleanupError);
+        }
+        status.textContent = error.message || String(error);
+        await window.showModal('Could not confirm return', error.message || String(error), 'error');
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    container.appendChild(form);
+  }
+
   async function loadDeliveries() {
     const deliveryList = document.getElementById('deliveryList');
     deliveryList.innerHTML = '<p>Loading deliveries...</p>';
+
+    const { data: authData, error: authError } = await supabaseClient.auth.getUser();
+    if (authError) {
+      console.error('Could not load delivery session:', authError);
+      deliveryList.innerHTML = '<p>Could not verify your session.</p>';
+      return;
+    }
+    currentAuthUserId = authData.user?.id || null;
 
     const { data: deliveries, error } = await supabaseClient
       .from('deliveries')
@@ -188,16 +335,22 @@ if (document.getElementById('deliveryForm')) {
         formattedTime = new Date(delivery.pickup_time).toLocaleString();
       }
 
-      item.innerHTML = `
-        <p><strong>Pickup:</strong> ${esc(delivery.pickup_address)}</p>
-        <p><strong>Delivery:</strong> ${esc(delivery.delivery_address)}</p>
-        <p><strong>Time:</strong> ${formattedTime}</p>
-        <p><strong>Item:</strong> ${esc(delivery.item_type || '-')}</p>
-        <p><strong>Distance:</strong> ${delivery.distance_km ? delivery.distance_km + ' km' : 'TBD'}</p>
-        <p><strong>Fee:</strong> ${delivery.fee ? '₱' + delivery.fee : 'TBD'}</p>
-        <p><strong>Status:</strong> <span>${esc(delivery.status)}</span></p>
-        ${delivery.notes ? `<p><strong>Notes:</strong> ${esc(delivery.notes)}</p>` : ''}
-      `;
+      addDeliveryDetail(item, 'Pickup', delivery.pickup_address || '-');
+      addDeliveryDetail(item, 'Delivery', delivery.delivery_address || '-');
+      addDeliveryDetail(item, 'Time', formattedTime);
+      addDeliveryDetail(item, 'Item', delivery.item_type || '-');
+      addDeliveryDetail(item, 'Distance', delivery.distance_km ? `${delivery.distance_km} km` : 'TBD');
+      addDeliveryDetail(item, 'Fee', delivery.fee ? `₱${delivery.fee}` : 'TBD');
+      addDeliveryDetail(item, 'Status', delivery.status || '-');
+      if (delivery.notes) addDeliveryDetail(item, 'Notes', delivery.notes);
+      renderReturnDetails(item, delivery);
+      if (
+        delivery.vendor_auth_user_id === currentAuthUserId &&
+        delivery.rental_booking_id &&
+        delivery.status === 'Delivered'
+      ) {
+        createReturnForm(delivery, item);
+      }
 
       item.addEventListener('click', async () => {
         const routeStatus = document.getElementById('deliveryRouteStatus');

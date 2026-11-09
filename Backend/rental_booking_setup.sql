@@ -7,7 +7,10 @@ alter table public.items
 alter table public.deliveries
   add column if not exists item_id bigint,
   add column if not exists vendor_auth_user_id uuid references auth.users(id) on delete set null,
-  add column if not exists rental_booking_id bigint;
+  add column if not exists rental_booking_id bigint,
+  add column if not exists return_condition text,
+  add column if not exists return_photo_url text,
+  add column if not exists admin_verified boolean not null default false;
 
 revoke insert on table public.deliveries from public, anon;
 drop policy if exists "Public can submit valid deliveries" on public.deliveries;
@@ -532,3 +535,124 @@ $function$;
 
 revoke all on function public.respond_rental_delivery(bigint, boolean) from public, anon;
 grant execute on function public.respond_rental_delivery(bigint, boolean) to authenticated;
+
+create or replace function public.confirm_rental_return(
+  p_delivery_id bigint,
+  p_return_condition text,
+  p_return_photo_url text
+)
+returns public.deliveries
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_delivery public.deliveries%rowtype;
+  v_photo_path text;
+begin
+  if (select auth.uid()) is null then
+    raise exception 'Authentication is required.' using errcode = '42501';
+  end if;
+  if p_return_condition is null
+    or p_return_condition not in ('Returned', 'Completed - Damaged') then
+    raise exception 'Choose a valid return condition.';
+  end if;
+  if p_return_photo_url is null
+    or p_return_photo_url !~ '^https://[^/]+/storage/v1/object/public/item-images/' then
+    raise exception 'Upload a return photo before confirming the return.';
+  end if;
+  v_photo_path := substring(
+    p_return_photo_url from '/storage/v1/object/public/item-images/(.+)$'
+  );
+  if not exists (
+    select 1
+    from storage.objects as photo
+    where photo.bucket_id = 'item-images'
+      and photo.name = v_photo_path
+      and (storage.foldername(photo.name))[1] = (select auth.uid())::text
+      and (storage.foldername(photo.name))[2] = 'returns'
+  ) then
+    raise exception 'The return photo must be uploaded to your own return-photo folder.';
+  end if;
+
+  select delivery.*
+  into v_delivery
+  from public.deliveries as delivery
+  where delivery.id = p_delivery_id
+    and delivery.vendor_auth_user_id = (select auth.uid())
+    and delivery.rental_booking_id is not null
+  for update;
+  if not found then
+    raise exception 'This rental delivery was not found for your account.' using errcode = '42501';
+  end if;
+  if v_delivery.status <> 'Delivered' then
+    raise exception 'The delivery must be marked Delivered before confirming its return.';
+  end if;
+  if v_delivery.item_id is null then
+    raise exception 'This delivery is not linked to a rental item.';
+  end if;
+  perform 1
+  from public.items as item
+  where item.id = v_delivery.item_id
+    and item.status = 'pending'
+    and item.pending_renter_id = v_delivery.user_id
+  for update;
+  if not found then
+    raise exception 'The linked rental item is not pending for this renter.';
+  end if;
+
+  update public.deliveries
+  set status = p_return_condition,
+      return_condition = p_return_condition,
+      return_photo_url = p_return_photo_url,
+      admin_verified = false
+  where id = p_delivery_id
+  returning * into v_delivery;
+
+  if p_return_condition = 'Returned' then
+    update public.items
+    set status = 'available',
+        pending_renter_id = null
+    where id = v_delivery.item_id
+      and status = 'pending'
+      and pending_renter_id = v_delivery.user_id;
+  end if;
+
+  return v_delivery;
+end;
+$function$;
+
+revoke all on function public.confirm_rental_return(bigint, text, text) from public, anon;
+grant execute on function public.confirm_rental_return(bigint, text, text) to authenticated;
+
+create or replace function public.admin_verify_delivery_return(p_delivery_id bigint)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  if (select auth.uid()) is null
+    or (
+      (select auth.jwt() -> 'app_metadata' ->> 'is_admin') is distinct from 'true'
+      and (select auth.jwt() -> 'app_metadata' ->> 'role') is distinct from 'admin'
+    ) then
+    raise exception 'Administrator access required.' using errcode = '42501';
+  end if;
+
+  update public.deliveries
+  set admin_verified = true
+  where id = p_delivery_id
+    and status in ('Returned', 'Completed - Damaged')
+    and return_condition in ('Returned', 'Completed - Damaged')
+    and return_photo_url is not null;
+
+  if not found then
+    raise exception 'This delivery has no return record ready for verification.';
+  end if;
+  return true;
+end;
+$function$;
+
+revoke all on function public.admin_verify_delivery_return(bigint) from public, anon;
+grant execute on function public.admin_verify_delivery_return(bigint) to authenticated;

@@ -73,6 +73,8 @@ where id = 123
 
 Run `rental_booking_setup.sql` after `vendor_chat_setup.sql` to add the renter/vendor booking handshake. A customer who has sent the listing proposes rental dates, pickup and delivery addresses, and a pickup time in the vendor chat. The listing owner must accept or decline that exact proposal. Only acceptance creates a delivery record; row-level security lets the renter and listing owner read that booking, while unrelated users cannot. Confirmed date ranges cannot overlap for the same listing. The proposal geocodes and stores both addresses so selecting a confirmed booking on the delivery page can draw the red route. This script also removes anonymous delivery insert grants and policies.
 
+The current `rental_booking_setup.sql` also adds delivery return-condition/photo fields and the `admin_verified` flag. Apply the updated script in Supabase SQL Editor to existing databases before deploying the return UI. Once an administrator marks a rental delivery as `Delivered`, its listing owner can confirm the return with a required JPG, PNG, or WEBP photo. An undamaged `Returned` item becomes `available` in the same database transaction; a `Completed - Damaged` item remains unavailable pending repair. Admins can view the return condition/photo and mark the return record as resolved. Return photos use the existing public `item-images` bucket under the uploader's Auth UUID.
+
 Promote an Auth account by running this in Supabase SQL Editor, replacing the sample email with the account shown in **Authentication > Users**:
 
 ```sql

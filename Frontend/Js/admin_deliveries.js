@@ -24,11 +24,27 @@ async function updateDeliveryStatus(deliveryId, status, select) {
   }
 }
 
+async function verifyDeliveryReturn(deliveryId, button) {
+  button.disabled = true;
+  deliveriesStatus.textContent = "";
+  try {
+    const { error } = await window.adminClient.rpc("admin_verify_delivery_return", {
+      p_delivery_id: deliveryId
+    });
+    if (error) throw error;
+    await loadAdminDeliveries();
+    deliveriesStatus.textContent = `Return for delivery ${deliveryId} marked as resolved.`;
+  } catch (error) {
+    deliveriesStatus.textContent = `Could not resolve return: ${error.message || String(error)}`;
+    button.disabled = false;
+  }
+}
+
 async function loadAdminDeliveries() {
   deliveriesStatus.textContent = "Loading deliveries...";
   const { data, error } = await window.adminClient
     .from("deliveries")
-    .select("id, user_id, auth_user_id, pickup_address, delivery_address, pickup_time, item_type, status, created_at")
+    .select("id, user_id, auth_user_id, pickup_address, delivery_address, pickup_time, item_type, status, return_condition, return_photo_url, admin_verified, created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -103,6 +119,55 @@ async function loadAdminDeliveries() {
     });
     statusCell.appendChild(statusSelect);
     row.appendChild(statusCell);
+
+    const returnCell = document.createElement("td");
+    if (["Returned", "Completed - Damaged"].includes(delivery.status)) {
+      const condition = document.createElement("p");
+      condition.textContent = delivery.return_condition || "Return condition not recorded";
+      returnCell.appendChild(condition);
+
+      let photoUrl = null;
+      try {
+        const parsedPhotoUrl = new URL(delivery.return_photo_url);
+        if (parsedPhotoUrl.protocol === "https:") photoUrl = parsedPhotoUrl.href;
+      } catch {
+        photoUrl = null;
+      }
+      if (photoUrl) {
+        const photoLink = document.createElement("a");
+        photoLink.href = photoUrl;
+        photoLink.target = "_blank";
+        photoLink.rel = "noopener noreferrer";
+        photoLink.setAttribute("aria-label", `Open return photo for delivery ${delivery.id}`);
+        const photo = document.createElement("img");
+        photo.src = photoUrl;
+        photo.alt = `Return photo for delivery ${delivery.id}`;
+        photo.className = "admin-return-photo";
+        photoLink.appendChild(photo);
+        returnCell.appendChild(photoLink);
+      } else {
+        const missingPhoto = document.createElement("p");
+        missingPhoto.textContent = delivery.return_photo_url
+          ? "Return photo unavailable"
+          : "No return photo provided";
+        returnCell.appendChild(missingPhoto);
+      }
+
+      if (delivery.admin_verified) {
+        const resolved = document.createElement("p");
+        resolved.textContent = "Resolved";
+        returnCell.appendChild(resolved);
+      } else if (delivery.return_condition && photoUrl) {
+        const verifyButton = document.createElement("button");
+        verifyButton.type = "button";
+        verifyButton.textContent = "Mark as Resolved";
+        verifyButton.addEventListener("click", () => verifyDeliveryReturn(delivery.id, verifyButton));
+        returnCell.appendChild(verifyButton);
+      }
+    } else {
+      returnCell.textContent = "—";
+    }
+    row.appendChild(returnCell);
     deliveriesBody.appendChild(row);
   }
   deliveriesStatus.textContent = data?.length ? `${data.length} delivery(ies)` : "No deliveries found.";

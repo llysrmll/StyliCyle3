@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Deliveries - StyliCycle Admin</title>
-  <link rel="stylesheet" href="/CSS/admin.css">
+  <link rel="stylesheet" href="/CSS/admin.css?v=return-verification">
 </head>
 <body>
   <div class="admin-shell">
@@ -24,7 +24,7 @@
       <p id="adminDeliveriesStatus" class="admin-status" role="status" aria-live="polite">Checking administrator access...</p>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>ID</th><th>User</th><th>Pickup</th><th>Destination</th><th>Pickup time</th><th>Item</th><th>Status</th></tr></thead>
+          <thead><tr><th>ID</th><th>User</th><th>Pickup</th><th>Destination</th><th>Pickup time</th><th>Item</th><th>Status</th><th>Return Verification</th></tr></thead>
           <tbody id="adminDeliveriesBody"></tbody>
         </table>
       </div>
@@ -33,6 +33,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/Js/supabase-client.js"></script>
   <script src="/Js/admin-common.js"></script>
-  <script src="/Js/admin_deliveries.js"></script>
+  <script src="/Js/admin_deliveries.js?v=return-verification"></script>
 </body>
 </html>
